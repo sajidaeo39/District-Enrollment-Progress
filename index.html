@@ -66,7 +66,7 @@ function render(){
  }).join("");
 }
 function exportRows(){
- return sorted().map(x=>({"District":x.district,"Baseline 2026":x.baseline,"Target 2026":x.new_target,"Expected Enrollment 2026":x.target,"Current Enrollment "+dateShort():x.current,"Male":x.male,"Female":x.female,"Other":x.other,"New admission 2026":x.increase,"Target achieved":x.progress_pct+"%"}));
+ return sorted().map(x=>({"District":x.district,"Baseline 2026":x.baseline,"Target 2026":x.new_target,"Expected Enrollment 2026":x.target,["Current Enrollment "+dateShort()]:x.current,"Male":x.male,"Female":x.female,"Other":x.other,"New admission 2026":x.increase,"Target achieved":x.progress_pct+"%"}));
 }
 function downloadExcel(){
  const ws=XLSX.utils.json_to_sheet(exportRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"District Progress");
