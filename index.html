@@ -3,32 +3,46 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Punjab District Enrollment Progress</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
 body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:0;background:#f4f7fb;color:#152033}
-.wrap{max-width:1250px;margin:auto;padding:20px}header,.card,.panel{background:#fff;border-radius:16px;padding:20px;box-shadow:0 3px 14px #0001}
+.wrap{max-width:1450px;margin:auto;padding:20px}header,.card,.panel{background:#fff;border-radius:16px;padding:20px;box-shadow:0 3px 14px #0001}
 header{background:#12355b;color:#fff;margin-bottom:16px}h1{margin:0 0 5px}.muted{opacity:.8;font-size:13px}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.label{font-size:12px;color:#667085}.value{font-size:24px;font-weight:800;margin-top:4px}
-.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;padding-bottom:12px;flex-wrap:wrap}
+.cards{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:16px}.label{font-size:11px;color:#667085}.value{font-size:21px;font-weight:800;margin-top:4px}
+.toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;padding-bottom:12px;flex-wrap:wrap}
+.actions{display:flex;gap:8px;flex-wrap:wrap}button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:700;background:#12355b;color:#fff}button:hover{opacity:.9}
 input{padding:10px;border:1px solid #ccd3dd;border-radius:8px;min-width:230px}
-.panel{overflow:auto}table{width:100%;border-collapse:collapse;min-width:980px}th,td{padding:11px;border-top:1px solid #eee;text-align:left}th{background:#f8fafc;font-size:12px;position:sticky;top:0}
-.num{text-align:right}.track{height:8px;background:#e5eaf0;border-radius:9px;min-width:130px}.bar{height:8px;background:#1677c8;border-radius:9px}
-.live{font-size:12px}.updated{font-size:12px;margin-top:10px}
-@media(max-width:800px){.cards{grid-template-columns:2fr 2fr}.wrap{padding:12px}}
+.panel{overflow:auto}table{width:100%;border-collapse:collapse;min-width:1200px}th,td{padding:10px;border-top:1px solid #eee;text-align:left}th{background:#f8fafc;font-size:12px;position:sticky;top:0;white-space:nowrap}
+.num{text-align:right}.track{height:8px;background:#e5eaf0;border-radius:9px;min-width:120px}.bar{height:8px;background:#1677c8;border-radius:9px}
+.updated{font-size:12px;margin-top:10px}.note{font-size:12px;color:#667085;margin-top:10px}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(4,1fr)}}@media(max-width:650px){.cards{grid-template-columns:repeat(2,1fr)}.wrap{padding:12px}}
 </style>
 </head>
 <body><div class="wrap">
 <header><h1>Punjab District Enrollment Progress</h1><div class="muted">District-level live enrollment • SIS PESRP</div><div id="updated" class="updated">Loading…</div></header>
+
 <div class="cards">
 <div class="card"><div class="label">DISTRICTS</div><div id="n" class="value">—</div></div>
 <div class="card"><div class="label">BASELINE</div><div id="b" class="value">—</div></div>
 <div class="card"><div class="label">TARGET</div><div id="t" class="value">—</div></div>
 <div class="card"><div class="label">LIVE CURRENT</div><div id="c" class="value">—</div></div>
+<div class="card"><div class="label">MALE</div><div id="m" class="value">—</div></div>
+<div class="card"><div class="label">FEMALE</div><div id="fe" class="value">—</div></div>
+<div class="card"><div class="label">OTHER</div><div id="o" class="value">—</div></div>
 </div>
-<div class="panel"><div class="toolbar"><b>District-wise Progress</b><input id="q" placeholder="Search district" oninput="render()"></div>
-<table><thead><tr><th>District</th><th>Baseline</th><th>New Target</th><th>Target</th><th>Current</th><th>Progress</th><th>Target Attainment</th></tr></thead>
-<tbody id="rows"></tbody></table></div></div>
+
+<div class="panel"><div class="toolbar"><b>District-wise Progress — Highest to Lowest</b>
+<div class="actions"><input id="q" placeholder="Search district" oninput="render()"><button onclick="downloadExcel()">Download Excel</button><button onclick="downloadPDF()">Download PDF</button></div></div>
+<table id="dataTable"><thead><tr><th>District</th><th>Baseline</th><th>New Target</th><th>Target</th><th>Current</th><th>Male</th><th>Female</th><th>Other</th><th>Increase</th><th>Progress</th></tr></thead>
+<tbody id="rows"></tbody></table><div class="note">Progress is sorted from high to low. Data is refreshed automatically by the GitHub Action.</div></div></div>
 <script>
 let D={districts:[]}; const f=x=>Number(x||0).toLocaleString("en-US");
+function sorted(){
+ const q=document.getElementById("q").value.toLowerCase();
+ return D.districts.filter(x=>x.district.toLowerCase().includes(q)).sort((a,b)=>Number(b.progress_pct||0)-Number(a.progress_pct||0));
+}
 async function load(){
  const r=await fetch("data/district_progress.json?"+Date.now()); if(!r.ok)throw Error("data unavailable");
  D=await r.json();
@@ -37,14 +51,31 @@ async function load(){
  document.getElementById("b").textContent=f(D.districts.reduce((a,x)=>a+x.baseline,0));
  document.getElementById("t").textContent=f(D.districts.reduce((a,x)=>a+x.target,0));
  document.getElementById("c").textContent=f(D.current_total||D.districts.reduce((a,x)=>a+x.current,0));
+ document.getElementById("m").textContent=f(D.districts.reduce((a,x)=>a+Number(x.male||0),0));
+ document.getElementById("fe").textContent=f(D.districts.reduce((a,x)=>a+Number(x.female||0),0));
+ document.getElementById("o").textContent=f(D.districts.reduce((a,x)=>a+Number(x.other||0),0));
  render();
 }
 function render(){
- const q=document.getElementById("q").value.toLowerCase();
- document.getElementById("rows").innerHTML=D.districts.filter(x=>x.district.toLowerCase().includes(q)).map(x=>{
+ document.getElementById("rows").innerHTML=sorted().map(x=>{
    const p=Math.max(0,Math.min(100,Number(x.progress_pct||0)));
-   return "<tr><td><b>"+x.district+"</b></td><td>"+f(x.baseline)+"</td><td>"+f(x.new_target)+"</td><td>"+f(x.target)+"</td><td>"+f(x.current)+"</td><td><div style='display:flex;gap:8px;align-items:center'><div class='track'><div class='bar' style='width:"+p+"%'></div></div>"+p+"%</div></td><td>"+Number(x.target_progress_pct||0).toFixed(2)+"%</td></tr>";
+   return "<tr><td><b>"+x.district+"</b></td><td>"+f(x.baseline)+"</td><td>"+f(x.new_target)+"</td><td>"+f(x.target)+"</td><td>"+f(x.current)+"</td><td>"+f(x.male)+"</td><td>"+f(x.female)+"</td><td>"+f(x.other)+"</td><td>"+f(x.increase)+"</td><td><div style='display:flex;gap:8px;align-items:center'><div class='track'><div class='bar' style='width:"+p+"%'></div></div>"+p+"%</div></td></tr>";
  }).join("");
+}
+function exportRows(){
+ return sorted().map(x=>({"District":x.district,"Baseline":x.baseline,"New Target":x.new_target,"Target":x.target,"Current Enrollment":x.current,"Male":x.male,"Female":x.female,"Other":x.other,"Actual Increase":x.increase,"Progress %":x.progress_pct}));
+}
+function downloadExcel(){
+ const ws=XLSX.utils.json_to_sheet(exportRows()); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"District Progress");
+ XLSX.writeFile(wb,"Punjab_District_Enrollment_Progress.xlsx");
+}
+function downloadPDF(){
+ const {jsPDF}=window.jspdf; const doc=new jsPDF("l","mm","a4");
+ doc.setFontSize(16); doc.text("Punjab District Enrollment Progress",14,14);
+ doc.setFontSize(9); doc.text("SIS PESRP | Updated: "+new Date(D.updated_at).toLocaleString("en-PK",{timeZone:"Asia/Karachi"}),14,20);
+ const rows=exportRows().map(x=>[x.District,f(x.Baseline),f(x["New Target"]),f(x.Target),f(x["Current Enrollment"]),f(x.Male),f(x.Female),f(x.Other),f(x["Actual Increase"]),x["Progress %"]+"%"]);
+ doc.autoTable({startY:25,head:[["District","Baseline","New Target","Target","Current","Male","Female","Other","Increase","Progress"]],body:rows,styles:{fontSize:7},headStyles:{fontSize:7},margin:{left:8,right:8}});
+ doc.save("Punjab_District_Enrollment_Progress.pdf");
 }
 load().catch(()=>document.getElementById("updated").textContent="Daily SIS data is not available yet. Run the GitHub Action.");
 </script>
