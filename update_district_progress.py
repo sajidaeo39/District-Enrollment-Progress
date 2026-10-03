@@ -89,7 +89,7 @@ def main():
 
     for district_id, district in enumerate(DISTRICTS, start=1):
         try:
-            live[district] = fetch_district(session, district_id, csrf)
+            live[district] = fetch_district(session, district_id, getattr(session, "csrf_token", csrf))
         except Exception:
             csrf = get_csrf(session)
             live[district] = fetch_district(session, district_id, csrf)
