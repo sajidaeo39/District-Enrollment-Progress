@@ -1,5 +1,9 @@
 name: Map SIS District IDs
 on:
+  push:
+    paths:
+      - "map_sis_ids.py"
+      - ".github/workflows/map-sis-ids.yml"
   workflow_dispatch:
 permissions:
   contents: read
