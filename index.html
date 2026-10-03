@@ -126,34 +126,70 @@ function downloadPDF(){
  const ds=D.districts,sum=k=>ds.reduce((a,x)=>a+Number(x[k]||0),0);
  const navy=[36,73,111],head=[216,231,245],totalBg=[229,242,232],line=[205,215,225],text=[45,58,73];
  const reportDate=new Date(D.updated_at).toLocaleString("en-PK",{timeZone:"Asia/Karachi"});
- const footer=()=>{doc.setDrawColor(...line);doc.line(12,H-12,W-12,H-12);doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(105,117,130);doc.text("Punjab District-wise Enrollment Dashboard • SIS PESRP",12,H-6);doc.text("Page "+doc.internal.getNumberOfPages(),W-25,H-6);};
- const header=()=>{doc.setTextColor(...navy);doc.setFont("helvetica","bold");doc.setFontSize(16);doc.text("Punjab District-wise Enrollment Dashboard",W/2,10,{align:"center"});doc.setFontSize(10);doc.text("District Enrollment Progress • SIS PESRP",W/2,16,{align:"center"});doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(85,98,113);doc.text("Latest SIS report: "+reportDate,W/2,22,{align:"center"});};
+ const footer=()=>{doc.setDrawColor(...line);doc.line(10,H-11,W-10,H-11);doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(105,117,130);doc.text("Punjab District-wise Enrollment Dashboard • SIS PESRP",10,H-5);doc.text("Page "+doc.internal.getNumberOfPages(),W-24,H-5);};
+ const header=()=>{doc.setTextColor(...navy);doc.setFont("helvetica","bold");doc.setFontSize(15);doc.text("Punjab District-wise Enrollment Dashboard",W/2,9,{align:"center"});doc.setFontSize(9);doc.text("District Enrollment Progress • SIS PESRP",W/2,15,{align:"center"});doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(85,98,113);doc.text("Latest SIS report: "+reportDate,W/2,21,{align:"center"});};
  header();
+
  const boxes=[
   ["Districts",D.district_count||ds.length],["Baseline 2026",sum("baseline")],["Target 2026",sum("new_target")],
   ["Expected Enrollment",sum("target")],["Current Enrollment",D.current_total||sum("current")],["New Admission 2026",sum("increase")],
   ["Target Achievement",(ds.length?ds.reduce((a,x)=>a+Number(x.progress_pct||0),0)/ds.length:0).toFixed(2)+"%"]
  ];
- const gap=4,left=12,bw=(W-24-gap*6)/7;let x=left;
- boxes.forEach(b=>{doc.setFillColor(245,247,250);doc.setDrawColor(...line);doc.roundedRect(x,28,bw,17,2,2,"FD");doc.setFont("helvetica","normal");doc.setFontSize(6.2);doc.setTextColor(95,108,122);doc.text(b[0],x+bw/2,34,{align:"center"});doc.setFont("helvetica","bold");doc.setFontSize(9.5);doc.setTextColor(...navy);doc.text(String(b[1]),x+bw/2,41,{align:"center"});x+=bw+gap;});
+ const gap=3,left=10,bw=(W-20-gap*6)/7;let x=left;
+ boxes.forEach(b=>{doc.setFillColor(245,247,250);doc.setDrawColor(...line);doc.roundedRect(x,26,bw,16,1.8,1.8,"FD");doc.setFont("helvetica","normal");doc.setFontSize(5.8);doc.setTextColor(95,108,122);doc.text(b[0],x+bw/2,32,{align:"center"});doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...navy);doc.text(String(b[1]),x+bw/2,39,{align:"center"});x+=bw+gap;});
+
  const rows=sorted().map((v,i)=>[i+1,v.district,f(v.baseline),f(v.new_target),f(v.target),f(v.current),f(v.increase),pct(v.progress_pct).toFixed(2)+"%"]);
+
+ // Use the full printable width and calculate all column widths from it.
+ const margin=10, tableWidth=W-(margin*2);
+ const weights=[0.055,0.205,0.115,0.115,0.145,0.145,0.115,0.105];
+ const widths=weights.map(v=>tableWidth*v);
+
  doc.autoTable({
-  startY:49,margin:{left:12,right:12,bottom:17},
+  startY:47,
+  margin:{left:margin,right:margin,bottom:16},
+  tableWidth:tableWidth,
   head:[["S.No.","District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment\n"+dateShort(),"New admission 2026","Target achieved"]],
-  body:rows,theme:"grid",
-  styles:{font:"helvetica",fontSize:7,cellPadding:2.2,halign:"center",valign:"middle",lineColor:line,lineWidth:.2,textColor:text},
-  headStyles:{fillColor:head,textColor:navy,fontStyle:"bold",fontSize:6.7,halign:"center",valign:"middle"},
+  body:rows,
+  theme:"grid",
+  styles:{
+   font:"helvetica",fontSize:7.1,cellPadding:2.0,halign:"center",valign:"middle",
+   lineColor:line,lineWidth:.18,textColor:text,overflow:"linebreak"
+  },
+  headStyles:{
+   fillColor:head,textColor:navy,fontStyle:"bold",fontSize:6.7,
+   halign:"center",valign:"middle",cellPadding:2.1
+  },
   alternateRowStyles:{fillColor:[251,252,253]},
-  columnStyles:{0:{cellWidth:12,halign:"center"},1:{cellWidth:42,halign:"center"},2:{cellWidth:27,halign:"center"},3:{cellWidth:27,halign:"center"},4:{cellWidth:36,halign:"center"},5:{cellWidth:36,halign:"center"},6:{cellWidth:31,halign:"center"},7:{cellWidth:29,halign:"center"}},
-  didParseCell:d=>{if(d.section==="body"&&d.column.index===7){const v=parseFloat(String(d.cell.raw).replace("%",""));d.cell.styles.textColor=v>=100?[22,128,60]:[198,40,40];d.cell.styles.fontStyle="bold";}},
+  columnStyles:{
+   0:{cellWidth:widths[0],halign:"center"},
+   1:{cellWidth:widths[1],halign:"center"},
+   2:{cellWidth:widths[2],halign:"center"},
+   3:{cellWidth:widths[3],halign:"center"},
+   4:{cellWidth:widths[4],halign:"center"},
+   5:{cellWidth:widths[5],halign:"center"},
+   6:{cellWidth:widths[6],halign:"center"},
+   7:{cellWidth:widths[7],halign:"center"}
+  },
+  didParseCell:d=>{
+   if(d.section==="body"&&d.column.index===7){
+    const v=parseFloat(String(d.cell.raw).replace("%",""));
+    d.cell.styles.textColor=v>=100?[22,128,60]:[198,40,40];
+    d.cell.styles.fontStyle="bold";
+   }
+  },
   didDrawPage:d=>{if(doc.internal.getNumberOfPages()>1)header();footer();}
  });
- let y=doc.lastAutoTable.finalY+5;if(y>H-26){doc.addPage();header();y=34;}
+
+ let y=doc.lastAutoTable.finalY+5;
+ if(y>H-25){doc.addPage();header();y=33;}
  const totals=[D.district_count||ds.length,sum("baseline"),sum("new_target"),sum("target"),D.current_total||sum("current"),sum("increase")];
- doc.setFillColor(...totalBg);doc.setDrawColor(190,210,195);doc.rect(12,y-4,W-24,14,"FD");
- doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...navy);doc.text("TOTAL",15,y+2);
- doc.setFont("helvetica","normal");doc.text("Districts: "+totals[0]+"   •   Baseline: "+f(totals[1])+"   •   Target: "+f(totals[2])+"   •   Expected: "+f(totals[3])+"   •   Current: "+f(totals[4])+"   •   New Admission: "+f(totals[5]),32,y+2);
- footer();doc.save("Punjab_District_Enrollment_Progress.pdf");
+ doc.setFillColor(...totalBg);doc.setDrawColor(190,210,195);doc.rect(10,y-4,W-20,13,"FD");
+ doc.setFont("helvetica","bold");doc.setFontSize(7.2);doc.setTextColor(...navy);doc.text("TOTAL",13,y+1);
+ doc.setFont("helvetica","normal");
+ doc.text("Districts: "+totals[0]+"   •   Baseline: "+f(totals[1])+"   •   Target: "+f(totals[2])+"   •   Expected: "+f(totals[3])+"   •   Current: "+f(totals[4])+"   •   New Admission: "+f(totals[5]),30,y+1);
+ footer();
+ doc.save("Punjab_District_Enrollment_Progress.pdf");
 }
 
 load().catch(()=>document.getElementById("updated").textContent="Daily SIS data is not available yet. Run the GitHub Action.");
