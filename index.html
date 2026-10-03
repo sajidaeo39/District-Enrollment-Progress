@@ -7,67 +7,82 @@
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
-:root{--blue:#0b5ed7;--dark:#17345f;--bg:#f4f7fb;--card:#fff;--line:#dfe5ee;--muted:#667085;--red:#c62828;--green:#16803c}
+:root{--blue:#0b5ed7;--dark:#17345f;--bg:#f4f7fb;--card:#fff;--line:#dfe5ee;--muted:#667085;--red:#c62828;--green:#16803c;--content:100%;--control-h:38px}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);font-family:"Segoe UI",Arial,sans-serif;color:#172033}
-header{background:linear-gradient(135deg,#12315b,#0b5ed7);color:#fff;padding:20px 24px}
-header .wrap{max-width:1550px;margin:auto;padding:0}
-header h1{margin:0;font-size:24px}
-header p{margin:5px 0 0;opacity:.9;font-size:13px}
-.wrap{max-width:1550px;margin:auto;padding:18px}
-.status{font-size:12px;margin-top:6px;opacity:.92}
-.live-badge{display:inline-block;margin-top:8px;background:#ffffff1c;border:1px solid #ffffff45;border-radius:14px;padding:4px 10px;font-size:10px;font-weight:700}
-.live-dot{display:inline-block;width:6px;height:6px;background:#62d88b;border-radius:50%;margin-right:5px}
-.cards{display:grid;grid-template-columns:repeat(7,minmax(125px,1fr));gap:10px;margin-bottom:14px}
-.card{background:#fff;border:1px solid var(--line);border-radius:11px;padding:12px;box-shadow:0 2px 8px #00000008}
-.label{font-size:11px;color:var(--muted)}
-.value{font-size:20px;font-weight:700;margin-top:4px;color:#172033}
-.tabs{display:flex;gap:5px;margin:0 0 4px}.tab{background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:7px 13px;font-weight:600;color:#17345f}.tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
-.toolbar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;background:#fff;border:1px solid var(--line);padding:8px;border-radius:11px;margin-bottom:6px}
-.toolbar input{padding:8px 9px;border:1px solid #cbd5e1;border-radius:7px;min-width:240px}
-.actions{display:flex;gap:7px;flex-wrap:wrap;margin-left:auto}
-.action{border:0;border-radius:7px;padding:8px 11px;background:#0f766e;color:#fff;font-weight:600;cursor:pointer;font-size:11px}
-.pdf{background:#b42318}
-.action:hover{opacity:.9}
-.tablebox{background:#fff;border:1px solid var(--line);border-radius:11px;overflow:auto;max-height:70vh}
-table{border-collapse:collapse;width:100%;font-size:11px}
-th,td{padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:center}
-th{position:sticky;top:0;background:#edf4fd;color:#17345f;z-index:2;font-weight:700}
-th:first-child,td:first-child{text-align:center}
-.district{font-weight:700}
+html,body{margin:0;padding:0}
+body{background:#fff;font-family:"Segoe UI",Arial,sans-serif;color:#172033}
+header{background:#fff;color:#17344d;padding:8px 0 9px;box-shadow:0 2px 10px rgba(23,52,77,.055);border-bottom:1px solid #e2eaf2}
+.header-inner{text-align:center;max-width:100%;margin:auto;padding:0 28px}
+header h1{margin:0 auto;font-size:23px;font-weight:750;letter-spacing:.1px;color:#17344d;line-height:1.2;max-width:900px;padding:8px 16px;background:#f4f8fc;border-radius:10px}
+header p{margin:4px 0 0;color:#52657a;font-size:11px;letter-spacing:.15px;font-weight:600}
+.updated{display:inline-block;margin-top:5px!important;font-size:11px!important;font-weight:600;color:#52657a!important;background:#f0f5fa;padding:3px 8px;border-radius:18px}
+.page-shell{width:100%;min-height:100vh}
+.main-content{width:100%;padding:8px 28px 22px}
+.cards{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;width:100%;margin:0 0 10px}
+.card{background:#fff;border:1px solid #dfe7ef;border-radius:10px;padding:8px 7px;box-shadow:0 2px 8px rgba(25,54,79,.055);min-width:0;height:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.card:nth-child(7n+1){background:#f2f7fb}.card:nth-child(7n+1) .value{color:#315b7d}
+.card:nth-child(7n+2){background:#f2f8f6}.card:nth-child(7n+2) .value{color:#246c5c}
+.card:nth-child(7n+3){background:#f1f8f4}.card:nth-child(7n+3) .value{color:#24784f}
+.card:nth-child(7n+4){background:#fff5f2}.card:nth-child(7n+4) .value{color:#a84e40}
+.card:nth-child(7n+5){background:#fff9ee}.card:nth-child(7n+5) .value{color:#916a1c}
+.card:nth-child(7n+6){background:#f5f3fb}.card:nth-child(7n+6) .value{color:#66599c}
+.card:nth-child(7n){background:#f2f6fb}.card:nth-child(7n) .value{color:#315b7d}
+.label{font-size:9.5px;color:#5f7080;font-weight:650;letter-spacing:.05px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.value{font-size:18px;line-height:1.1;font-weight:750;margin-top:4px;text-align:center}
+.tabs{display:flex;gap:7px;flex-wrap:nowrap;overflow-x:auto;justify-content:center;margin:0 0 9px;padding:0 1px;scrollbar-width:thin}
+.tab{background:#fff;border:1px solid #cbd5e1;border-radius:7px;padding:0 15px;height:var(--control-h);min-width:130px;white-space:nowrap;font-size:12px;font-weight:650;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.panel{width:100%;background:#fff}
+.toolbar{display:flex;gap:7px;align-items:center;justify-content:center;flex-wrap:nowrap;width:100%;background:#fff;border:1px solid var(--line);padding:9px;border-radius:10px;margin:0 0 9px;box-shadow:0 2px 7px rgba(25,54,79,.04);overflow:hidden}
+.toolbar-title{font-size:12px;font-weight:700;color:#17345f;white-space:nowrap}
+.toolbar input{height:var(--control-h);padding:0 10px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;font:12px Segoe UI,Arial,sans-serif;color:#172033;min-width:0;width:min(390px,34vw);flex:1 1 390px}
+.actions{display:flex;gap:7px;flex:0 0 auto}
+.action{height:var(--control-h);border:0;border-radius:7px;padding:0 12px;background:#0f766e;color:#fff;font:650 12px Segoe UI,Arial,sans-serif;cursor:pointer;white-space:nowrap;min-width:112px}
+.action:hover{opacity:.9}.pdf{background:#b42318}
+.table-wrap{width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:calc(100vh - 255px);box-shadow:0 2px 7px rgba(25,54,79,.035)}
+table{border-collapse:collapse;width:100%;min-width:0;table-layout:fixed;font-size:10px}
+th,td{padding:7px 5px;white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.2;border-bottom:1px solid var(--line);text-align:center!important;vertical-align:middle!important;font-variant-numeric:tabular-nums}
+th{position:sticky;top:0;background:#edf4fd;color:#17345f;z-index:3;font-weight:700}
+th:first-child,td:first-child{text-align:center!important}
+td:first-child{font-weight:600;color:#5d6b7e}
+.district{font-weight:650;color:#172033}
 .num{font-variant-numeric:tabular-nums}
 .achievement{font-weight:700}
 .good{color:var(--green)}.bad{color:var(--red)}
-.track{height:7px;background:#e6ebf0;border-radius:8px;min-width:70px;display:inline-block;vertical-align:middle;overflow:hidden}
-.bar{height:7px;background:#0b5ed7;border-radius:8px}
-.sno{font-weight:700;color:#5d6b7e}
+.track{height:6px;background:#e6ebf0;border-radius:8px;min-width:58px;display:inline-block;vertical-align:middle;overflow:hidden}
+.bar{height:6px;background:var(--blue);border-radius:8px}
 .total-row td{background:#edf4fd!important;font-weight:800;color:#17345f;border-top:2px solid #b9cbe0}
-.note{font-size:11px;color:var(--muted);margin:7px 0 11px}
-.updated{font-size:12px;margin-top:6px}
-.page-shell{width:100%;min-height:100vh}
-.header-inner{width:100%;padding:20px 28px}
-.main-content{width:100%;padding:16px 28px 28px}
-.cards{width:100%;margin-bottom:2px}
-.panel{width:100%;background:#fff;border:1px solid var(--line);border-radius:11px;padding:6px}
-.table-wrap{width:100%;overflow:auto;max-height:calc(100vh - 285px)}
-.table-wrap table{width:100%;min-width:0;table-layout:auto}
-@media(min-width:1051px){th,td{padding:9px 10px}.district{min-width:150px}.table-wrap{min-height:420px}}
-@media(max-width:1050px){.cards{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:650px){
- .wrap{padding:9px}
- header{padding:16px 12px}
- header h1{font-size:20px}
- header p{font-size:11px}
- .cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
- .card{padding:10px;min-height:65px}
- .label{font-size:9px}.value{font-size:16px}
- .toolbar{padding:9px;align-items:stretch}
- .toolbar input{min-width:100%;width:100%}
- .actions{display:grid;grid-template-columns:1fr 1fr;width:100%;margin-left:0}
- .action{width:100%;padding:10px 6px}
- .tablebox{max-height:none;-webkit-overflow-scrolling:touch}
- table{min-width:790px;font-size:10px}
- th,td{padding:7px 6px}
+@media(max-width:1050px){
+ .main-content{padding:8px 14px 18px}
+ .cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .toolbar{justify-content:flex-start}
+}
+@media(max-width:700px){
+ html,body{width:100%;max-width:100%;overflow-x:hidden}
+ body{background:#f6f8fb}
+ header{padding:7px 0 8px}
+ .header-inner{padding:0 9px}
+ header h1{font-size:17px!important;padding:6px 7px}
+ header p{font-size:9px;line-height:1.35}
+ .updated{font-size:9.5px!important}
+ .main-content{padding:7px}
+ .cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:0 0 8px}
+ .card{height:auto;min-height:55px;padding:6px 2px;border-radius:9px}
+ .label{font-size:7.5px;line-height:1.15;white-space:normal;overflow-wrap:anywhere}
+ .value{font-size:13px;line-height:1.05;margin-top:4px;overflow-wrap:anywhere}
+ .tabs{justify-content:flex-start;gap:5px;overflow-x:auto;margin:0 0 7px}
+ .tab{height:37px;min-width:auto;padding:0 12px;font-size:10.5px;border-radius:18px}
+ .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;margin:0 0 8px;overflow:visible}
+ .toolbar-title{grid-column:1/-1}
+ .toolbar input{grid-column:1/-1;width:100%;height:39px;flex:none}
+ .actions{display:contents}
+ .action{width:100%;min-width:0;height:39px;font-size:11px}
+ .table-wrap{max-height:60vh;-webkit-overflow-scrolling:touch}
+ table{width:max-content;min-width:100%;table-layout:auto}
+ th,td{padding:8px 6px;min-width:70px;font-size:9.5px!important;line-height:1.25}
+ th:first-child,td:first-child{min-width:48px;position:sticky;left:0;background:#fff;z-index:2}
+ th:first-child{background:#edf4fd;z-index:4}
+ .district{min-width:135px}
 }
 </style>
 </head>
@@ -79,25 +94,30 @@ th:first-child,td:first-child{text-align:center}
   <div id="updated" class="updated">Latest SIS report: Loading…</div>
  </div>
 </header>
-
-<main class="main-content"><div class="cards">
-<div class="card"><div class="label">Districts</div><div id="n" class="value">—</div></div>
-<div class="card"><div class="label">Baseline 2026</div><div id="b" class="value">—</div></div>
-<div class="card"><div class="label">Target 2026</div><div id="t" class="value">—</div></div>
-<div class="card"><div class="label">Expected Enrollment</div><div id="e" class="value">—</div></div>
-<div class="card"><div class="label">Current Enrollment</div><div id="c" class="value">—</div></div>
-<div class="card"><div class="label">New Admission 2026</div><div id="a" class="value">—</div></div>
-<div class="card"><div class="label">Target Achievement</div><div id="overall" class="value">—</div></div>
-</div></div>
-
-<div class="tabs"><button class="tab active" type="button">District Wise</button></div>
-<div class="panel"><div class="toolbar"><div style="font-weight:700;color:#17345f">District Enrollment Report</div>
-  
-  <div class="actions"><input id="q" placeholder="Search district" oninput="render()"><button class="secondary" onclick="downloadExcel()">Download Excel</button><button onclick="downloadPDF()">Download PDF</button></div>
-</div>
-<div class="table-wrap"><table id="dataTable"><thead><tr id="headRow"></tr></thead><tbody id="rows"></tbody></table></div>
-</main></div>
-<script>
+<main class="main-content">
+ <div class="cards">
+  <div class="card"><div class="label">Districts</div><div id="n" class="value">—</div></div>
+  <div class="card"><div class="label">Baseline 2026</div><div id="b" class="value">—</div></div>
+  <div class="card"><div class="label">Target 2026</div><div id="t" class="value">—</div></div>
+  <div class="card"><div class="label">Expected Enrollment</div><div id="e" class="value">—</div></div>
+  <div class="card"><div class="label">Current Enrollment</div><div id="c" class="value">—</div></div>
+  <div class="card"><div class="label">New Admission 2026</div><div id="a" class="value">—</div></div>
+  <div class="card"><div class="label">Target Achievement</div><div id="overall" class="value">—</div></div>
+ </div>
+ <div class="tabs"><button class="tab active" type="button">District Wise</button></div>
+ <div class="panel">
+  <div class="toolbar">
+   <div class="toolbar-title">District Enrollment Report</div>
+   <input id="q" placeholder="Search district" oninput="render()">
+   <div class="actions">
+    <button class="action" onclick="downloadExcel()">Download Excel</button>
+    <button class="action pdf" onclick="downloadPDF()">Download PDF</button>
+   </div>
+  </div>
+  <div class="table-wrap"><table id="dataTable"><thead><tr id="headRow"></tr></thead><tbody id="rows"></tbody></table></div>
+ </div>
+</main>
+</div><script>
 let D={districts:[]};
 const f=x=>Number(x||0).toLocaleString("en-US");
 const dateLabel=()=>{const d=new Date(D.updated_at);return d.toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"})};
