@@ -43,6 +43,14 @@ th:first-child,td:first-child{text-align:center}
 .total-row td{background:#edf4fd!important;font-weight:800;color:#17345f;border-top:2px solid #b9cbe0}
 .note{font-size:11px;color:var(--muted);margin:7px 0 11px}
 .updated{font-size:12px;margin-top:6px}
+.page-shell{width:100%;min-height:100vh}
+.header-inner{width:100%;padding:20px 28px}
+.main-content{width:100%;padding:16px 28px 28px}
+.cards{width:100%}
+.panel{width:100%;background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px}
+.table-wrap{width:100%;overflow:auto;max-height:calc(100vh - 285px)}
+.table-wrap table{width:100%;min-width:0;table-layout:auto}
+@media(min-width:1051px){th,td{padding:9px 10px}.district{min-width:150px}.table-wrap{min-height:420px}}
 @media(max-width:1050px){.cards{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:650px){
  .wrap{padding:9px}
@@ -62,9 +70,9 @@ th:first-child,td:first-child{text-align:center}
 }
 </style>
 </head>
-<body><div class="wrap">
+<body><div class="page-shell">
 <header>
- <div class="wrap">
+ <div class="header-inner">
   <h1>Punjab District-wise Enrollment Progress</h1>
   <p>District-wise live enrollment • SIS PESRP</p>
   <div id="updated" class="updated">Latest SIS report: Loading…</div>
@@ -72,7 +80,7 @@ th:first-child,td:first-child{text-align:center}
  </div>
 </header>
 
-<div class="cards">
+<main class="main-content"><div class="cards">
 <div class="card"><div class="label">Districts</div><div id="n" class="value">—</div></div>
 <div class="card"><div class="label">Baseline 2026</div><div id="b" class="value">—</div></div>
 <div class="card"><div class="label">Target 2026</div><div id="t" class="value">—</div></div>
@@ -80,14 +88,14 @@ th:first-child,td:first-child{text-align:center}
 <div class="card"><div class="label">Current Enrollment</div><div id="c" class="value">—</div></div>
 <div class="card"><div class="label">New Admission 2026</div><div id="a" class="value">—</div></div>
 <div class="card"><div class="label">Target Achievement</div><div id="overall" class="value">—</div></div>
-</div>
+</div></div>
 
 <div class="panel"><div class="toolbar">
   
   <div class="actions"><input id="q" placeholder="Search district" oninput="render()"><button class="secondary" onclick="downloadExcel()">Download Excel</button><button onclick="downloadPDF()">Download PDF</button></div>
 </div>
 <div class="table-wrap"><table id="dataTable"><thead><tr id="headRow"></tr></thead><tbody id="rows"></tbody></table></div>
-</div></div>
+</main></div>
 <script>
 let D={districts:[]};
 const f=x=>Number(x||0).toLocaleString("en-US");
