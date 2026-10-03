@@ -35,7 +35,7 @@ input{padding:10px;border:1px solid #ccd3dd;border-radius:8px;min-width:230px}
 
 <div class="panel"><div class="toolbar"><b>District-wise Progress — Highest to Lowest</b>
 <div class="actions"><input id="q" placeholder="Search district" oninput="render()"><button onclick="downloadExcel()">Download Excel</button><button onclick="downloadPDF()">Download PDF</button></div></div>
-<table id="dataTable"><thead><tr><th>District</th><th>Baseline</th><th>New Target</th><th>Target</th><th>Current</th><th>Male</th><th>Female</th><th>Other</th><th>Increase</th><th>Progress</th></tr></thead>
+<table id="dataTable"><thead><tr><th>District</th><th>Baseline</th><th>New Target</th><th>Target</th><th>Current</th><th>Male</th><th>Female</th><th>Other</th><th>New admission 2026</th><th>Target achieved</th></tr></thead>
 <tbody id="rows"></tbody></table><div class="note">Progress is sorted from high to low. Data is refreshed automatically by the GitHub Action.</div></div></div>
 <script>
 let D={districts:[]}; const f=x=>Number(x||0).toLocaleString("en-US");
@@ -74,7 +74,7 @@ function downloadPDF(){
  doc.setFontSize(16); doc.text("Punjab District Enrollment Progress",14,14);
  doc.setFontSize(9); doc.text("SIS PESRP | Updated: "+new Date(D.updated_at).toLocaleString("en-PK",{timeZone:"Asia/Karachi"}),14,20);
  const rows=exportRows().map(x=>[x.District,f(x.Baseline),f(x["New Target"]),f(x.Target),f(x["Current Enrollment"]),f(x.Male),f(x.Female),f(x.Other),f(x["Actual Increase"]),x["Progress %"]+"%"]);
- doc.autoTable({startY:25,head:[["District","Baseline","New Target","Target","Current","Male","Female","Other","Increase","Progress"]],body:rows,styles:{fontSize:7},headStyles:{fontSize:7},margin:{left:8,right:8}});
+ doc.autoTable({startY:25,head:[["District","Baseline","New Target","Target","Current","Male","Female","Other","New admission 2026","Target achieved"]],body:rows,styles:{fontSize:7},headStyles:{fontSize:7},margin:{left:8,right:8}});
  doc.save("Punjab_District_Enrollment_Progress.pdf");
 }
 load().catch(()=>document.getElementById("updated").textContent="Daily SIS data is not available yet. Run the GitHub Action.");
