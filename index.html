@@ -84,6 +84,9 @@ td:first-child{font-weight:600;color:#5d6b7e}
  th:first-child{background:#edf4fd;z-index:4}
  .district{min-width:135px}
 }
+.sno{width:42px;min-width:42px;max-width:42px;font-weight:700;color:#5d6b7e}
+@media(min-width:1051px){.actions .action{min-width:105px}.toolbar{gap:6px}}
+@media(max-width:700px){.actions{display:grid;grid-template-columns:repeat(2,1fr)}.actions .action{min-width:0}.sno{width:38px;min-width:38px;max-width:38px}}
 </style>
 </head>
 <body><div class="page-shell">
@@ -104,12 +107,14 @@ td:first-child{font-weight:600;color:#5d6b7e}
   <div class="card"><div class="label">New Admission 2026</div><div id="a" class="value">—</div></div>
   <div class="card"><div class="label">Target Achievement</div><div id="overall" class="value">—</div></div>
  </div>
- <div class="tabs"><button class="tab active" type="button">District Wise</button></div>
  <div class="panel">
   <div class="toolbar">
    <div class="toolbar-title">District Enrollment Report</div>
    <input id="q" placeholder="Search district" oninput="render()">
    <div class="actions">
+    <button class="action" onclick="showTop10()">Top 10 Districts</button>
+    <button class="action" onclick="showLast10()">Last 10 Districts</button>
+    <button class="action" onclick="showAll()">All Districts</button>
     <button class="action" onclick="downloadExcel()">Download Excel</button>
     <button class="action pdf" onclick="downloadPDF()">Download PDF</button>
    </div>
@@ -128,7 +133,7 @@ function sorted(){
  return D.districts.filter(x=>x.district.toLowerCase().includes(q)).sort((a,b)=>pct(b.progress_pct)-pct(a.progress_pct));
 }
 function headings(){
- const h=["S.No.","District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment<br><small>"+dateShort()+"</small>","New admission 2026","Target achieved"];
+ const h=["S.No.","District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment "+dateShort(),"New admission 2026","Target achieved"];
  document.getElementById("headRow").innerHTML=h.map(x=>"<th>"+x+"</th>").join("");
 }
 async function load(){
@@ -146,6 +151,16 @@ async function load(){
  document.getElementById("overall").textContent=overall.toFixed(2)+"%";
  render();
 }
+let districtView="all";
+function viewRows(){
+ const rows=sorted();
+ if(districtView==="top") return rows.slice(0,10);
+ if(districtView==="last") return rows.slice(-10);
+ return rows;
+}
+function showTop10(){districtView="top";render();}
+function showLast10(){districtView="last";render();}
+function showAll(){districtView="all";render();}
 function render(){
  const rows=sorted().map((x,i)=>{
    const p=pct(x.progress_pct), width=Math.max(0,Math.min(100,p)), cls=p>=100?"good":"bad";
@@ -214,7 +229,7 @@ function downloadPDF(){
    startY:35,
    margin:{left:margin,right:margin,bottom:9},
    tableWidth:tableWidth,
-   head:[["S.No.","District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment\n"+dateShort(),"New Admission 2026","Target Achieved"]],
+   head:[["S.No.","District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment "+dateShort(),"New Admission 2026","Target Achieved"]],
    body:rows,
    theme:"grid",
    styles:{
