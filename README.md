@@ -19,3 +19,6 @@ No SIS session cookies or CSRF tokens are stored in the repository.
 SIS endpoint: `https://sis.pesrp.edu.pk/dashboard_revamp/get_gender_summary_pie`
 
 The district IDs used by the updater follow the 40-district category order supplied from the live SIS response.
+
+
+Last updater fix: district names are matched from the SIS live district summary response rather than numeric district IDs.
