@@ -37,6 +37,8 @@ header p{margin:4px 0 0;color:#52657a;font-size:11px;letter-spacing:.15px;font-w
 .toolbar-title{font-size:12px;font-weight:700;color:#17345f;white-space:nowrap}
 .toolbar input{height:var(--control-h);padding:0 10px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;font:12px Segoe UI,Arial,sans-serif;color:#172033;min-width:0;width:min(390px,34vw);flex:1 1 390px}
 .actions{display:flex;gap:7px;flex:0 0 auto}
+.actions .view-btn{background:#0b5ed7}
+.actions .view-btn.active{background:#17345f;box-shadow:0 0 0 2px #d7e5f5 inset}
 .action{height:var(--control-h);border:0;border-radius:7px;padding:0 12px;background:#0f766e;color:#fff;font:650 12px Segoe UI,Arial,sans-serif;cursor:pointer;white-space:nowrap;min-width:112px}
 .action:hover{opacity:.9}.pdf{background:#b42318}
 .table-wrap{width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:calc(100vh - 255px);box-shadow:0 2px 7px rgba(25,54,79,.035)}
@@ -112,9 +114,9 @@ td:first-child{font-weight:600;color:#5d6b7e}
    <div class="toolbar-title">District Enrollment Report</div>
    <input id="q" placeholder="Search district" oninput="render()">
    <div class="actions">
-    <button class="action" onclick="showTop10()">Top 10 Districts</button>
-    <button class="action" onclick="showLast10()">Last 10 Districts</button>
-    <button class="action" onclick="showAll()">All Districts</button>
+    <button id="topBtn" class="action view-btn" onclick="showTop10()">Top 10 Districts</button>
+    <button id="lastBtn" class="action view-btn" onclick="showLast10()">Last 10 Districts</button>
+    <button id="allBtn" class="action view-btn active" onclick="showAll()">All Districts</button>
     <button class="action" onclick="downloadExcel()">Download Excel</button>
     <button class="action pdf" onclick="downloadPDF()">Download PDF</button>
    </div>
@@ -158,9 +160,16 @@ function viewRows(){
  if(districtView==="last") return rows.slice(-10);
  return rows;
 }
-function showTop10(){districtView="top";render();}
-function showLast10(){districtView="last";render();}
-function showAll(){districtView="all";render();}
+function setView(v){
+ districtView=v;
+ document.getElementById("topBtn").classList.toggle("active",v==="top");
+ document.getElementById("lastBtn").classList.toggle("active",v==="last");
+ document.getElementById("allBtn").classList.toggle("active",v==="all");
+ render();
+}
+function showTop10(){setView("top");}
+function showLast10(){setView("last");}
+function showAll(){setView("all");}
 function render(){
  const rows=sorted().map((x,i)=>{
    const p=pct(x.progress_pct), width=Math.max(0,Math.min(100,p)), cls=p>=100?"good":"bad";
