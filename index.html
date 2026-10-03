@@ -151,22 +151,23 @@ function downloadPDF(){
  const {jsPDF}=window.jspdf;
  const doc=new jsPDF("p","mm","a4");
  const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
- const ds=D.districts,sum=k=>ds.reduce((a,x)=>a+Number(x[k]||0),0);
- const navy=[36,73,111],head=[216,231,245],totalBg=[229,242,232],line=[205,215,225],text=[45,58,73];
+ const ds=D.districts;
+ const sum=k=>ds.reduce((a,x)=>a+Number(x[k]||0),0);
+ const navy=[36,73,111],head=[216,231,245],line=[205,215,225],text=[45,58,73];
  const reportDate=new Date(D.updated_at).toLocaleString("en-PK",{timeZone:"Asia/Karachi"});
- const margin=7,tableWidth=W-(margin*2);
+ const margin=6,tableWidth=W-(margin*2);
  const footer=()=>{
-   doc.setDrawColor(...line);doc.line(margin,H-9,W-margin,H-9);
-   doc.setFont("helvetica","normal");doc.setFontSize(5.8);doc.setTextColor(105,117,130);
-   doc.text("Punjab District-wise Enrollment Dashboard • SIS PESRP",margin,H-4);
-   doc.text("Page "+doc.internal.getNumberOfPages(),W-22,H-4);
+   doc.setDrawColor(...line);doc.line(margin,H-7,W-margin,H-7);
+   doc.setFont("helvetica","normal");doc.setFontSize(5.5);doc.setTextColor(105,117,130);
+   doc.text("Punjab District-wise Enrollment Dashboard • SIS PESRP",margin,H-3);
+   doc.text("Page "+doc.internal.getNumberOfPages(),W-20,H-3);
  };
  const header=()=>{
    doc.setTextColor(...navy);doc.setFont("helvetica","bold");
-   doc.setFontSize(13);doc.text("Punjab District-wise Enrollment Dashboard",W/2,8,{align:"center"});
-   doc.setFontSize(8);doc.text("District Enrollment Progress • SIS PESRP",W/2,13,{align:"center"});
-   doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(85,98,113);
-   doc.text("Latest SIS report: "+reportDate,W/2,18,{align:"center"});
+   doc.setFontSize(13);doc.text("Punjab District-wise Enrollment Dashboard",W/2,7,{align:"center"});
+   doc.setFontSize(8);doc.text("District Enrollment Progress • SIS PESRP",W/2,12,{align:"center"});
+   doc.setFont("helvetica","normal");doc.setFontSize(6.2);doc.setTextColor(85,98,113);
+   doc.text("Latest SIS report: "+reportDate,W/2,17,{align:"center"});
  };
  header();
 
@@ -175,37 +176,39 @@ function downloadPDF(){
   ["Expected Enrollment",sum("target")],["Current Enrollment",D.current_total||sum("current")],
   ["New Admission 2026",sum("increase")],["Target Achievement",(ds.length?ds.reduce((a,x)=>a+Number(x.progress_pct||0),0)/ds.length:0).toFixed(2)+"%"]
  ];
- const gap=2,left=margin,bw=(tableWidth-gap*6)/7;let x=left;
+ const gap=1.8,left=margin,bw=(tableWidth-gap*6)/7;let x=left;
  boxes.forEach(b=>{
-   doc.setFillColor(245,247,250);doc.setDrawColor(...line);doc.roundedRect(x,22,bw,13,1.4,1.4,"FD");
-   doc.setFont("helvetica","normal");doc.setFontSize(4.7);doc.setTextColor(95,108,122);
-   doc.text(b[0],x+bw/2,27,{align:"center"});
-   doc.setFont("helvetica","bold");doc.setFontSize(7.1);doc.setTextColor(...navy);
-   doc.text(String(b[1]),x+bw/2,32.5,{align:"center"});x+=bw+gap;
+   doc.setFillColor(245,247,250);doc.setDrawColor(...line);doc.roundedRect(x,20,bw,12,1.2,1.2,"FD");
+   doc.setFont("helvetica","normal");doc.setFontSize(4.5);doc.setTextColor(95,108,122);
+   doc.text(b[0],x+bw/2,25,{align:"center"});
+   doc.setFont("helvetica","bold");doc.setFontSize(7.2);doc.setTextColor(...navy);
+   doc.text(String(b[1]),x+bw/2,30,{align:"center"});
+   x+=bw+gap;
  });
 
  const rows=sorted().map((v,i)=>[
    i+1,v.district,f(v.baseline),f(v.new_target),f(v.target),f(v.current),f(v.increase),pct(v.progress_pct).toFixed(2)+"%"
  ]);
 
- // Portrait A4 usable width = 196mm. Widths are calculated from that exact width.
+ // Compact but readable widths: the complete table is constrained to the printable A4 width.
  const weights=[0.055,0.18,0.12,0.12,0.16,0.16,0.105,0.10];
  const widths=weights.map(v=>tableWidth*v);
 
  doc.autoTable({
-   startY:39,
-   margin:{left:margin,right:margin,bottom:13},
+   startY:35,
+   margin:{left:margin,right:margin,bottom:9},
    tableWidth:tableWidth,
    head:[["S.No.","District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment\n"+dateShort(),"New Admission 2026","Target Achieved"]],
    body:rows,
    theme:"grid",
    styles:{
-     font:"helvetica",fontSize:5.8,cellPadding:1.25,halign:"center",valign:"middle",
-     lineColor:line,lineWidth:.15,textColor:text,overflow:"linebreak"
+     font:"helvetica",fontSize:6.4,cellPadding:1.05,halign:"center",valign:"middle",
+     lineColor:line,lineWidth:.15,textColor:text,overflow:"linebreak",
+     minCellHeight:5.1
    },
    headStyles:{
-     fillColor:head,textColor:navy,fontStyle:"bold",fontSize:5.5,
-     halign:"center",valign:"middle",cellPadding:1.3
+     fillColor:head,textColor:navy,fontStyle:"bold",fontSize:5.9,
+     halign:"center",valign:"middle",cellPadding:1.15,minCellHeight:8
    },
    alternateRowStyles:{fillColor:[251,252,253]},
    columnStyles:{
@@ -228,14 +231,7 @@ function downloadPDF(){
    didDrawPage:d=>{if(doc.internal.getNumberOfPages()>1)header();footer();}
  });
 
- let y=doc.lastAutoTable.finalY+4;
- if(y>H-21){doc.addPage();header();y=27;}
- const totals=[D.district_count||ds.length,sum("baseline"),sum("new_target"),sum("target"),D.current_total||sum("current"),sum("increase")];
- doc.setFillColor(...totalBg);doc.setDrawColor(190,210,195);doc.rect(margin,y-3,tableWidth,11,"FD");
- doc.setFont("helvetica","bold");doc.setFontSize(6);doc.setTextColor(...navy);doc.text("TOTAL",margin+2,y+1);
- doc.setFont("helvetica","normal");doc.setFontSize(5.7);
- doc.text("Districts: "+totals[0]+" • Baseline: "+f(totals[1])+" • Target: "+f(totals[2])+" • Expected: "+f(totals[3]),margin+18,y+1);
- doc.text("Current: "+f(totals[4])+" • New Admission: "+f(totals[5]),margin+18,y+5.5);
+ // No totals/summary strip at the end: the district table is the final report content.
  footer();
  doc.save("Punjab_District_Enrollment_Progress.pdf");
 }
