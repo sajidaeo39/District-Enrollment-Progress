@@ -7,74 +7,103 @@
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
-body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:0;background:#f4f7fb;color:#152033}
-.wrap{max-width:1450px;margin:auto;padding:20px}header,.card,.panel{background:#fff;border-radius:16px;padding:20px;box-shadow:0 3px 14px #0001}
-header{background:#12355b;color:#fff;margin-bottom:16px}h1{margin:0 0 5px}.muted{opacity:.8;font-size:13px}
-.cards{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:16px}.label{font-size:11px;color:#667085}.value{font-size:21px;font-weight:800;margin-top:4px}
-.toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;padding-bottom:12px;flex-wrap:wrap}
-.actions{display:flex;gap:8px;flex-wrap:wrap}button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:700;background:#12355b;color:#fff}button:hover{opacity:.9}
-input{padding:10px;border:1px solid #ccd3dd;border-radius:8px;min-width:230px}
-.panel{overflow:auto}table{width:100%;border-collapse:collapse;min-width:1200px}th,td{padding:10px;border-top:1px solid #eee;text-align:left}th{background:#f8fafc;font-size:12px;position:sticky;top:0;white-space:nowrap}
-.num{text-align:right}.track{height:8px;background:#e5eaf0;border-radius:9px;min-width:120px}.bar{height:8px;background:#1677c8;border-radius:9px}
-.updated{font-size:12px;margin-top:10px}.note{font-size:12px;color:#667085;margin-top:10px}
-@media(max-width:1000px){.cards{grid-template-columns:repeat(4,1fr)}}@media(max-width:650px){.cards{grid-template-columns:repeat(2,1fr)}.wrap{padding:12px}}
+*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f7fb;color:#152033}.wrap{max-width:1500px;margin:auto;padding:20px}
+header,.card,.panel{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 10px #0001}header{background:#12355b;color:#fff;margin-bottom:16px}h1{margin:0 0 5px;font-size:25px}.muted{opacity:.85;font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}.label{font-size:11px;color:#667085;text-transform:uppercase}.value{font-size:20px;font-weight:800;margin-top:5px}
+.toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;padding-bottom:12px;flex-wrap:wrap}.actions{display:flex;gap:8px;flex-wrap:wrap}
+button{border:0;border-radius:7px;padding:10px 14px;cursor:pointer;font-weight:700;background:#12355b;color:#fff}button:hover{opacity:.9}input{padding:10px;border:1px solid #ccd3dd;border-radius:7px;min-width:230px}
+.panel{overflow:auto}table{width:100%;border-collapse:collapse;min-width:1280px}th,td{padding:9px 8px;border:1px solid #d9dee7;text-align:left}th{background:#eef2f6;font-size:11px;white-space:nowrap;font-weight:700}.num{text-align:right}.achievement{font-weight:800;white-space:nowrap}.good{color:#16803c}.bad{color:#c62828}.track{height:8px;background:#e5eaf0;border-radius:9px;min-width:90px}.bar{height:8px;border-radius:9px;background:#1677c8}.updated{font-size:12px;margin-top:10px}.note{font-size:12px;color:#667085;margin-top:10px}
+@media(max-width:1100px){.cards{grid-template-columns:repeat(3,1fr)}}@media(max-width:650px){.cards{grid-template-columns:repeat(2,1fr)}.wrap{padding:12px}}
 </style>
 </head>
 <body><div class="wrap">
-<header><h1>Punjab District Enrollment Progress</h1><div class="muted">District-level live enrollment • SIS PESRP</div><div id="updated" class="updated">Loading…</div></header>
+<header><h1>Punjab District Enrollment Progress</h1><div class="muted">District-wise live enrollment • SIS PESRP</div><div id="updated" class="updated">Loading…</div></header>
 
 <div class="cards">
-<div class="card"><div class="label">DISTRICTS</div><div id="n" class="value">—</div></div>
-<div class="card"><div class="label">BASELINE</div><div id="b" class="value">—</div></div>
-<div class="card"><div class="label">TARGET</div><div id="t" class="value">—</div></div>
-<div class="card"><div class="label">LIVE CURRENT</div><div id="c" class="value">—</div></div>
-<div class="card"><div class="label">MALE</div><div id="m" class="value">—</div></div>
-<div class="card"><div class="label">FEMALE</div><div id="fe" class="value">—</div></div>
-<div class="card"><div class="label">OTHER</div><div id="o" class="value">—</div></div>
+<div class="card"><div class="label">Districts</div><div id="n" class="value">—</div></div>
+<div class="card"><div class="label">Baseline 2026</div><div id="b" class="value">—</div></div>
+<div class="card"><div class="label">Target 2026</div><div id="t" class="value">—</div></div>
+<div class="card"><div class="label">Expected Enrollment 2026</div><div id="e" class="value">—</div></div>
+<div class="card"><div class="label">Current Enrollment</div><div id="c" class="value">—</div></div>
+<div class="card"><div class="label">New admission 2026</div><div id="a" class="value">—</div></div>
 </div>
 
-<div class="panel"><div class="toolbar"><b>District-wise Progress — Highest to Lowest</b>
+<div class="panel"><div class="toolbar"><b>District-wise Enrollment Progress — Highest to Lowest</b>
 <div class="actions"><input id="q" placeholder="Search district" oninput="render()"><button onclick="downloadExcel()">Download Excel</button><button onclick="downloadPDF()">Download PDF</button></div></div>
-<table id="dataTable"><thead><tr><th>District</th><th>Baseline</th><th>New Target</th><th>Target</th><th>Current</th><th>Male</th><th>Female</th><th>Other</th><th>New admission 2026</th><th>Target achieved</th></tr></thead>
-<tbody id="rows"></tbody></table><div class="note">Progress is sorted from high to low. Data is refreshed automatically by the GitHub Action.</div></div></div>
+<table id="dataTable"><thead><tr id="headRow"></tr></thead><tbody id="rows"></tbody></table>
+<div class="note"><b>Green = On Target &nbsp; Red = Target Not Achieved</b> • Data is refreshed automatically by the GitHub Action.</div></div></div>
 <script>
-let D={districts:[]}; const f=x=>Number(x||0).toLocaleString("en-US");
+let D={districts:[]};
+const f=x=>Number(x||0).toLocaleString("en-US");
+const dateLabel=()=>{const d=new Date(D.updated_at);return d.toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"})};
+const dateShort=()=>{const d=new Date(D.updated_at);return d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})};
+function pct(x){return Number(x||0)}
 function sorted(){
  const q=document.getElementById("q").value.toLowerCase();
- return D.districts.filter(x=>x.district.toLowerCase().includes(q)).sort((a,b)=>Number(b.progress_pct||0)-Number(a.progress_pct||0));
+ return D.districts.filter(x=>x.district.toLowerCase().includes(q)).sort((a,b)=>pct(b.progress_pct)-pct(a.progress_pct));
+}
+function headings(){
+ const h=["District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment<br><small>"+dateShort()+"</small>","Male","Female","Other","New admission 2026","Target achieved"];
+ document.getElementById("headRow").innerHTML=h.map(x=>"<th>"+x+"</th>").join("");
 }
 async function load(){
  const r=await fetch("data/district_progress.json?"+Date.now()); if(!r.ok)throw Error("data unavailable");
- D=await r.json();
- document.getElementById("updated").textContent="Last updated: "+new Date(D.updated_at).toLocaleString("en-PK",{timeZone:"Asia/Karachi"});
- document.getElementById("n").textContent=D.district_count||D.districts.length;
- document.getElementById("b").textContent=f(D.districts.reduce((a,x)=>a+x.baseline,0));
- document.getElementById("t").textContent=f(D.districts.reduce((a,x)=>a+x.target,0));
- document.getElementById("c").textContent=f(D.current_total||D.districts.reduce((a,x)=>a+x.current,0));
- document.getElementById("m").textContent=f(D.districts.reduce((a,x)=>a+Number(x.male||0),0));
- document.getElementById("fe").textContent=f(D.districts.reduce((a,x)=>a+Number(x.female||0),0));
- document.getElementById("o").textContent=f(D.districts.reduce((a,x)=>a+Number(x.other||0),0));
+ D=await r.json(); headings();
+ document.getElementById("updated").textContent="Last Updated at: "+new Date(D.updated_at).toLocaleString("en-PK",{timeZone:"Asia/Karachi"});
+ const ds=D.districts;
+ document.getElementById("n").textContent=D.district_count||ds.length;
+ document.getElementById("b").textContent=f(ds.reduce((a,x)=>a+Number(x.baseline||0),0));
+ document.getElementById("t").textContent=f(ds.reduce((a,x)=>a+Number(x.new_target||0),0));
+ document.getElementById("e").textContent=f(ds.reduce((a,x)=>a+Number(x.target||0),0));
+ document.getElementById("c").textContent=f(D.current_total||ds.reduce((a,x)=>a+Number(x.current||0),0));
+ document.getElementById("a").textContent=f(ds.reduce((a,x)=>a+Number(x.increase||0),0));
  render();
 }
 function render(){
  document.getElementById("rows").innerHTML=sorted().map(x=>{
-   const p=Math.max(0,Math.min(100,Number(x.progress_pct||0)));
-   return "<tr><td><b>"+x.district+"</b></td><td>"+f(x.baseline)+"</td><td>"+f(x.new_target)+"</td><td>"+f(x.target)+"</td><td>"+f(x.current)+"</td><td>"+f(x.male)+"</td><td>"+f(x.female)+"</td><td>"+f(x.other)+"</td><td>"+f(x.increase)+"</td><td><div style='display:flex;gap:8px;align-items:center'><div class='track'><div class='bar' style='width:"+p+"%'></div></div>"+p+"%</div></td></tr>";
+   const p=pct(x.progress_pct), width=Math.max(0,Math.min(100,p)), cls=p>=100?"good":"bad";
+   return "<tr><td><b>"+x.district+"</b></td><td class='num'>"+f(x.baseline)+"</td><td class='num'>"+f(x.new_target)+"</td><td class='num'>"+f(x.target)+"</td><td class='num'>"+f(x.current)+"</td><td class='num'>"+f(x.male)+"</td><td class='num'>"+f(x.female)+"</td><td class='num'>"+f(x.other)+"</td><td class='num'>"+f(x.increase)+"</td><td class='achievement "+cls+"'><div style='display:flex;gap:8px;align-items:center'><div class='track'><div class='bar' style='width:"+width+"%'></div></div>"+p.toFixed(2)+"%</div></td></tr>";
  }).join("");
 }
 function exportRows(){
- return sorted().map(x=>({"District":x.district,"Baseline":x.baseline,"New Target":x.new_target,"Target":x.target,"Current Enrollment":x.current,"Male":x.male,"Female":x.female,"Other":x.other,"Actual Increase":x.increase,"Progress %":x.progress_pct}));
+ return sorted().map(x=>({"District":x.district,"Baseline 2026":x.baseline,"Target 2026":x.new_target,"Expected Enrollment 2026":x.target,"Current Enrollment "+dateShort():x.current,"Male":x.male,"Female":x.female,"Other":x.other,"New admission 2026":x.increase,"Target achieved":x.progress_pct+"%"}));
 }
 function downloadExcel(){
- const ws=XLSX.utils.json_to_sheet(exportRows()); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"District Progress");
+ const ws=XLSX.utils.json_to_sheet(exportRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"District Progress");
  XLSX.writeFile(wb,"Punjab_District_Enrollment_Progress.xlsx");
 }
 function downloadPDF(){
- const {jsPDF}=window.jspdf; const doc=new jsPDF("l","mm","a4");
- doc.setFontSize(16); doc.text("Punjab District Enrollment Progress",14,14);
- doc.setFontSize(9); doc.text("SIS PESRP | Updated: "+new Date(D.updated_at).toLocaleString("en-PK",{timeZone:"Asia/Karachi"}),14,20);
- const rows=exportRows().map(x=>[x.District,f(x.Baseline),f(x["New Target"]),f(x.Target),f(x["Current Enrollment"]),f(x.Male),f(x.Female),f(x.Other),f(x["Actual Increase"]),x["Progress %"]+"%"]);
- doc.autoTable({startY:25,head:[["District","Baseline","New Target","Target","Current","Male","Female","Other","New admission 2026","Target achieved"]],body:rows,styles:{fontSize:7},headStyles:{fontSize:7},margin:{left:8,right:8}});
+ const {jsPDF}=window.jspdf;const doc=new jsPDF("l","mm","a4");
+ const W=doc.internal.pageSize.getWidth();
+ const reportDate=new Date(D.updated_at).toLocaleString("en-PK",{timeZone:"Asia/Karachi"});
+ doc.setFillColor(18,53,91);doc.rect(0,0,W,28,"F");doc.setTextColor(255,255,255);
+ doc.setFont("helvetica","bold");doc.setFontSize(16);doc.text("Latest SIS Enrollment",14,10);
+ doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.text("Report Date / Time: "+reportDate,14,16);
+ doc.text("Punjab District-wise Enrollment Progress",14,22);
+ doc.setTextColor(0,0,0);
+ const ds=D.districts, sum=k=>ds.reduce((a,x)=>a+Number(x[k]||0),0);
+ const boxes=[["Districts",D.district_count||ds.length],["Baseline 2026",sum("baseline")],["Target 2026",sum("new_target")],["Expected Enrollment 2026",sum("target")],["Current Enrollment",D.current_total||sum("current")],["New admission 2026",sum("increase")]];
+ const bw=(W-28-25)/6;let bx=14;
+ boxes.forEach((b,i)=>{doc.setFillColor(246,248,250);doc.setDrawColor(205,211,220);doc.roundedRect(bx,33,bw,16,2,2,"FD");doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(80,90,105);doc.text(String(b[0]),bx+3,39);doc.setFontSize(10);doc.setTextColor(20,32,51);doc.text(f(b[1]),bx+3,46);bx+=bw+5});
+ doc.setFontSize(7.5);doc.setTextColor(22,32,51);doc.text("Green = On Target    Red = Target Not Achieved",14,55);
+ const rows=sorted().map(x=>[x.district,f(x.baseline),f(x.new_target),f(x.target),f(x.current),f(x.male),f(x.female),f(x.other),f(x.increase),pct(x.progress_pct).toFixed(2)+"%"]);
+ doc.autoTable({
+   startY:59,
+   head:[["District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment\n"+dateShort(),"Male","Female","Other","New admission 2026","Target achieved"]],
+   body:rows,
+   theme:"grid",
+   styles:{font:"helvetica",fontSize:6.5,cellPadding:2,halign:"right",lineColor:[190,196,204],lineWidth:.2,textColor:[30,35,45]},
+   headStyles:{fillColor:[238,242,246],textColor:[25,35,48],fontStyle:"bold",fontSize:6.3,halign:"center",valign:"middle",lineColor:[170,178,188]},
+   columnStyles:{0:{halign:"left",cellWidth:31},1:{cellWidth:20},2:{cellWidth:20},3:{cellWidth:29},4:{cellWidth:29},5:{cellWidth:20},6:{cellWidth:20},7:{cellWidth:16},8:{cellWidth:27},9:{cellWidth:23,halign:"center"}},
+   didParseCell:data=>{if(data.section==="body"&&data.column.index===9){const v=parseFloat(String(data.cell.raw).replace("%",""));data.cell.styles.textColor=v>=100?[22,128,60]:[198,40,40];data.cell.styles.fontStyle="bold";}},
+   didDrawPage:data=>{doc.setFontSize(7);doc.setTextColor(90,98,108);doc.text("Punjab District Enrollment Progress",14,doc.internal.pageSize.getHeight()-7);doc.text("Page "+doc.internal.getNumberOfPages(),W-25,doc.internal.pageSize.getHeight()-7);}
+ });
+ let y=doc.lastAutoTable.finalY+6;
+ if(y>doc.internal.pageSize.getHeight()-25){doc.addPage();y=18;}
+ doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(25,35,48);
+ doc.text("GRAND TOTAL",14,y);
+ const totals=[D.district_count||ds.length,sum("baseline"),sum("new_target"),sum("target"),D.current_total||sum("current"),sum("male"),sum("female"),sum("other"),sum("increase")];
+ doc.text("Districts: "+totals[0],45,y);doc.text("Baseline: "+f(totals[1]),75,y);doc.text("Target: "+f(totals[2]),110,y);doc.text("Expected: "+f(totals[3]),145,y);doc.text("Current: "+f(totals[4]),190,y);doc.text("New admission: "+f(totals[8]),235,y);
  doc.save("Punjab_District_Enrollment_Progress.pdf");
 }
 load().catch(()=>document.getElementById("updated").textContent="Daily SIS data is not available yet. Run the GitHub Action.");
