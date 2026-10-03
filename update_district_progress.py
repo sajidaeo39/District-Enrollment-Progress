@@ -1,7 +1,10 @@
 from pathlib import Path
 from datetime import datetime
 from zoneinfo import ZoneInfo
-import csv, json, re, time
+import csv
+import json
+import re
+import time
 import requests
 
 ROOT = Path(__file__).resolve().parent
@@ -12,7 +15,6 @@ SIS_BASE = "https://sis.pesrp.edu.pk"
 PAGE_URL = f"{SIS_BASE}/dashboard/enrollment"
 ENROLLMENT_URL = f"{SIS_BASE}/dashboard_revamp/get_gender_summary_pie"
 
-# SIS district IDs follow the category order observed from the live SIS response.
 DISTRICTS = [
     "ATTOCK","BAHAWALNAGAR","BAHAWALPUR","BHAKKAR","CHAKWAL","CHINIOT",
     "D.G. KHAN","FAISALABAD","GUJRANWALA","GUJRAT","HAFIZABAD","JHANG",
@@ -26,13 +28,16 @@ DISTRICTS = [
 def get_csrf(session):
     r = session.get(PAGE_URL, timeout=45)
     r.raise_for_status()
-    # The dashboard response exposes csrf_test_name alongside the HTML.
-    matches = re.findall(r'"csrf_test_name"\\s*:\\s*"([^"]+)"', r.text)
-    if not matches:
-        matches = re.findall(r'name=["\\']csrf_test_name["\\']\\s+value=["\\']([^"\\']+)', r.text)
-    if not matches:
-        raise RuntimeError("Could not obtain a fresh SIS CSRF token.")
-    return matches[-1]
+    patterns = [
+        r'csrf_test_name["\']?\s*[:=]\s*["\']([^"\']+)["\']',
+        r'name=["\']csrf_test_name["\']\s+value=["\']([^"\']+)["\']',
+        r'csrf_test_name\s*[:=]\s*["\']([^"\']+)["\']',
+    ]
+    for pattern in patterns:
+        matches = re.findall(pattern, r.text, flags=re.I)
+        if matches:
+            return matches[-1]
+    raise RuntimeError("SIS CSRF token not found in dashboard response.")
 
 def fetch_district(session, district_id, csrf):
     payload = {
@@ -46,7 +51,10 @@ def fetch_district(session, district_id, csrf):
     r = session.post(
         ENROLLMENT_URL,
         data=payload,
-        headers={"X-Requested-With": "XMLHttpRequest", "Referer": SIS_BASE + "/"},
+        headers={
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": PAGE_URL,
+        },
         timeout=45,
     )
     r.raise_for_status()
@@ -63,24 +71,29 @@ def main():
     targets = {}
     with TARGET_CSV.open(newline="", encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
-            targets[row["District"].strip().replace("\\", "")] = row
+            name = row["District"].strip().replace("\\", "")
+            targets[name] = row
+
+    missing = [d for d in DISTRICTS if d not in targets]
+    if missing:
+        raise RuntimeError("Districts missing from target CSV: " + ", ".join(missing))
 
     session = requests.Session()
     session.headers.update({
         "Accept": "application/json, text/javascript, */*; q=0.01",
         "User-Agent": "Mozilla/5.0 District-Enrollment-Progress",
     })
-    csrf = get_csrf(session)
 
+    csrf = get_csrf(session)
     live = {}
-    for idx, district in enumerate(DISTRICTS, start=1):
+
+    for district_id, district in enumerate(DISTRICTS, start=1):
         try:
-            live[district] = fetch_district(session, idx, csrf)
-        except requests.HTTPError as e:
-            # Refresh token/session once if SIS rejects the current session.
+            live[district] = fetch_district(session, district_id, csrf)
+        except Exception:
             csrf = get_csrf(session)
-            live[district] = fetch_district(session, idx, csrf)
-        time.sleep(0.25)
+            live[district] = fetch_district(session, district_id, csrf)
+        time.sleep(0.2)
 
     rows = []
     for district in DISTRICTS:
@@ -89,9 +102,10 @@ def main():
         new_target = int(row["New Target"])
         expected = int(row["Expected"])
         current = live[district]["total"]
-        required_increase = max(expected - baseline, 0)
+        required_increase = expected - baseline
         actual_increase = current - baseline
         progress = (actual_increase / required_increase * 100) if required_increase else 100
+
         rows.append({
             "district": district,
             "baseline": baseline,
@@ -108,14 +122,16 @@ def main():
             "target_progress_pct": round(current / expected * 100, 2) if expected else 0,
         })
 
-    updated = datetime.now(ZoneInfo("Asia/Karachi")).isoformat()
-    OUT.write_text(json.dumps({
-        "updated_at": updated,
-        "source": ENROLLMENT_URL,
-        "district_count": len(rows),
-        "current_total": sum(x["current"] for x in rows),
-        "districts": rows,
-    }, ensure_ascii=False, indent=2), encoding="utf-8")
+    OUT.write_text(
+        json.dumps({
+            "updated_at": datetime.now(ZoneInfo("Asia/Karachi")).isoformat(),
+            "source": ENROLLMENT_URL,
+            "district_count": len(rows),
+            "current_total": sum(x["current"] for x in rows),
+            "districts": rows,
+        }, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
 
 if __name__ == "__main__":
     main()
