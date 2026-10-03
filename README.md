@@ -1,9 +1,21 @@
 # District Enrollment Progress
 
-District-level enrollment progress dashboard built from the supplied 2026-27 district baseline/target workbook.
+District-level Punjab enrollment progress dashboard using the live SIS PESRP gender-summary endpoint and the supplied district baseline/target workbook.
 
-**Live-source note:** the connected `okara-enrollment-live` repository is an Okara-only SIS feed. The dashboard therefore keeps all 40 district target rows, but only shows a current enrollment value for a district when the live source actually provides that district. Missing live districts are shown as **Awaiting live source**, not zero.
+## Automatic update
+GitHub Actions runs daily at **08:00 Pakistan time (03:00 UTC)** and can also be started manually from **Actions → Update District Enrollment Dashboard → Run workflow**.
 
-The workflow runs at **03:10 UTC (08:10 Pakistan time)**, after the source repository's 03:00 UTC update window, and also supports manual **Run workflow**.
+Each run:
+1. Creates a fresh SIS session and CSRF token.
+2. Queries the SIS district enrollment endpoint for all 40 districts.
+3. Reads the district baseline/target CSV.
+4. Calculates current enrollment, increase, progress and target attainment.
+5. Writes `data/district_progress.json`.
+6. Commits the refreshed JSON and deploys the site to GitHub Pages.
 
-Enable GitHub Pages at **Settings → Pages → Source → GitHub Actions**.
+No SIS session cookies or CSRF tokens are stored in the repository.
+
+## Source
+SIS endpoint: `https://sis.pesrp.edu.pk/dashboard_revamp/get_gender_summary_pie`
+
+The district IDs used by the updater follow the 40-district category order supplied from the live SIS response.
