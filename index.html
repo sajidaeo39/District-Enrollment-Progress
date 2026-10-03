@@ -8,73 +8,69 @@
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
 *{box-sizing:border-box}
-:root{--navy:#12355b;--navy2:#0d2947;--blue:#1677c8;--green:#16803c;--red:#c62828;--bg:#f3f6fa;--line:#dbe2ea;--text:#182536;--muted:#667085}
-body{font-family:Inter,Arial,Helvetica,sans-serif;margin:0;background:linear-gradient(180deg,#eef3f8 0,#f7f9fc 420px);color:var(--text)}
-.wrap{max-width:1540px;margin:auto;padding:24px}
-header{background:linear-gradient(135deg,var(--navy2),var(--navy));color:#fff;border-radius:16px;padding:24px 26px;margin-bottom:18px;box-shadow:0 8px 24px #12355b20;position:relative;overflow:hidden}
-header:after{content:"";position:absolute;width:240px;height:240px;border:45px solid #ffffff10;border-radius:50%;right:-80px;top:-120px}
-.brand{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;opacity:.78;font-weight:700;margin-bottom:8px}
-h1{margin:0 0 7px;font-size:28px;line-height:1.2;letter-spacing:-.3px}
-.subtitle{font-size:14px;opacity:.9}
-.header-row{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;position:relative;z-index:1}
-.live-badge{display:inline-flex;align-items:center;gap:7px;background:#ffffff18;border:1px solid #ffffff28;border-radius:999px;padding:8px 12px;font-size:11px;font-weight:700;white-space:nowrap}
-.live-dot{width:7px;height:7px;background:#61d38b;border-radius:50%;box-shadow:0 0 0 4px #61d38b20}
-.updated{font-size:12px;margin-top:13px;opacity:.86}
-.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
-.card{background:#fff;border:1px solid #e5eaf0;border-radius:13px;padding:16px 17px;box-shadow:0 4px 14px #1c35510c;min-height:92px}
-.label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.65px;font-weight:800}
-.value{font-size:21px;font-weight:800;margin-top:8px;letter-spacing:-.2px}
-.panel{background:#fff;border:1px solid #e1e7ee;border-radius:15px;box-shadow:0 5px 18px #1c35510b;overflow:hidden}
-.toolbar{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:16px 18px;border-bottom:1px solid #e5eaf0;flex-wrap:wrap}
-.toolbar-title{font-size:14px;font-weight:800}.toolbar-sub{font-size:11px;color:var(--muted);margin-top:3px}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-button{border:1px solid var(--navy);border-radius:8px;padding:9px 13px;cursor:pointer;font-weight:750;background:var(--navy);color:#fff;box-shadow:0 2px 5px #12355b18}
-button.secondary{background:#fff;color:var(--navy);border-color:#cbd5e1}
-button:hover{transform:translateY(-1px);box-shadow:0 4px 10px #12355b20}
-input{padding:9px 11px;border:1px solid #cbd5e1;border-radius:8px;min-width:230px;outline:none}
-input:focus{border-color:#6b9dcc;box-shadow:0 0 0 3px #1677c815}
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#fff;color:#23364d}
+.wrap{max-width:1500px;margin:auto;padding:18px 22px}
+header{text-align:center;padding:8px 0 12px;background:#fff;box-shadow:none}
+.brand{font-size:25px;font-weight:800;color:#24496f;letter-spacing:-.3px}
+h1{margin:0;font-size:25px;color:#24496f;font-weight:800}
+.subtitle{margin-top:4px;font-size:14px;color:#4f6278;font-weight:700}
+.updated{margin-top:7px;font-size:12px;color:#667789}
+.live-badge{display:inline-block;margin-top:6px;background:#edf4fb;color:#24537d;border:1px solid #cbd9e7;border-radius:14px;padding:4px 10px;font-size:10px;font-weight:800}
+.live-dot{display:inline-block;width:6px;height:6px;background:#2b9b5a;border-radius:50%;margin-right:5px}
+.cards{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin:8px 8px 14px}
+.card{background:#f5f7fa;border:1px solid #d8e0e8;border-radius:8px;padding:11px 8px;text-align:center;min-height:72px;box-shadow:0 1px 3px #23364d10}
+.label{font-size:10px;color:#657487;line-height:1.2}
+.value{font-size:16px;font-weight:800;margin-top:7px;color:#24496f}
+.panel{background:#fff;border:0;border-radius:0;box-shadow:none;overflow:visible}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 2px 9px;flex-wrap:wrap}
+.toolbar-title{font-size:18px;font-weight:800;color:#24496f}.toolbar-sub{font-size:11px;color:#667789;margin-top:2px}
+.actions{display:flex;gap:7px;flex-wrap:wrap}
+button{border:1px solid #28557f;border-radius:6px;padding:8px 12px;cursor:pointer;font-weight:700;background:#28557f;color:#fff;font-size:11px}
+button.secondary{background:#fff;color:#28557f}
+button:hover{opacity:.9}
+input{padding:8px 10px;border:1px solid #cbd5df;border-radius:6px;min-width:210px;font-size:11px}
 .table-wrap{overflow:auto}
-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1320px}
-th,td{padding:9px 9px;border-right:1px solid #e1e6ec;border-bottom:1px solid #e1e6ec;text-align:left}
-th:first-child,td:first-child{border-left:1px solid #e1e6ec}
-thead th{background:#edf2f7;color:#27364a;font-size:10.5px;white-space:nowrap;font-weight:800;position:sticky;top:0;z-index:2}
-tbody td{font-size:11.5px;background:#fff}
-tbody tr:nth-child(even) td{background:#fafbfd}
-tbody tr:hover td{background:#f1f6fb}
+table{width:100%;border-collapse:collapse;min-width:1360px}
+th,td{padding:7px 7px;border:1px solid #d4dde6;text-align:left}
+thead th{background:#d8e7f5;color:#24496f;font-size:10px;white-space:nowrap;font-weight:800;text-align:center}
+tbody td{font-size:10.5px;background:#fff}
+tbody tr:nth-child(even) td{background:#fbfcfd}
+tbody tr:hover td{background:#f4f8fc}
+.sno{text-align:center;color:#607287;font-weight:700;width:45px}
+.district{font-weight:700;color:#30465e}
 .num{text-align:right;font-variant-numeric:tabular-nums}
-.sno{text-align:center;color:#667085;font-weight:700;width:52px}
-.district{font-weight:800;color:#1b3552}
-.achievement{font-weight:800;white-space:nowrap}
-.good{color:var(--green)}.bad{color:var(--red)}
-.track{height:7px;background:#e4eaf1;border-radius:9px;min-width:78px;overflow:hidden}
-.bar{height:7px;border-radius:9px;background:var(--blue)}
-.note{font-size:11px;color:var(--muted);padding:11px 18px;background:#fbfcfe;border-top:1px solid #e5eaf0}
-.legend{display:inline-flex;gap:14px;margin-left:12px}.legend span{font-weight:700}.legend .g{color:var(--green)}.legend .r{color:var(--red)}
-@media(max-width:1200px){.cards{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:700px){.cards{grid-template-columns:repeat(2,1fr)}.wrap{padding:12px}h1{font-size:23px}.header-row{align-items:flex-start;flex-direction:column}.live-badge{align-self:flex-start}}
+.achievement{font-weight:800;white-space:nowrap;text-align:center}
+.good{color:#16803c}.bad{color:#c62828}
+.track{height:7px;background:#e6ebf0;border-radius:8px;min-width:65px;display:inline-block;vertical-align:middle;overflow:hidden}
+.bar{height:7px;background:#2b79b7;border-radius:8px}
+.total-row td{background:#e5f2e8!important;font-weight:800;color:#24496f}
+.note{font-size:10px;color:#657487;padding:9px 2px}
+.legend{margin-left:10px}.legend .g{color:#16803c;font-weight:800}.legend .r{color:#c62828;font-weight:800}
+@media(max-width:1200px){.cards{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:650px){.cards{grid-template-columns:repeat(2,1fr)}.wrap{padding:10px}h1,.brand{font-size:21px}}
 </style>
 </head>
 <body><div class="wrap">
 <header>
-  <div class="brand">Punjab School Education Department • SIS PESRP</div>
-  <div class="header-row">
-    <div><h1>Punjab District Enrollment Progress</h1><div class="subtitle">District-wise live enrollment monitoring and 2026 target progress</div></div>
-    <div class="live-badge"><span class="live-dot"></span> LIVE SIS DATA</div>
-  </div>
-  <div id="updated" class="updated">Loading…</div>
+  <div class="brand">Punjab District-wise Enrollment Dashboard</div>
+  <div class="subtitle">District Enrollment Progress • SIS PESRP</div>
+  <div id="updated" class="updated">Latest SIS report: Loading…</div>
+  <div class="live-badge"><span class="live-dot"></span> LIVE SIS DATA</div>
 </header>
 
 <div class="cards">
 <div class="card"><div class="label">Districts</div><div id="n" class="value">—</div></div>
 <div class="card"><div class="label">Baseline 2026</div><div id="b" class="value">—</div></div>
 <div class="card"><div class="label">Target 2026</div><div id="t" class="value">—</div></div>
-<div class="card"><div class="label">Expected Enrollment 2026</div><div id="e" class="value">—</div></div>
+<div class="card"><div class="label">Expected Enrollment</div><div id="e" class="value">—</div></div>
 <div class="card"><div class="label">Current Enrollment</div><div id="c" class="value">—</div></div>
-<div class="card"><div class="label">New admission 2026</div><div id="a" class="value">—</div></div>
+<div class="card"><div class="label">New Admission 2026</div><div id="a" class="value">—</div></div>
+<div class="card"><div class="label">Male Enrollment</div><div id="m" class="value">—</div></div>
+<div class="card"><div class="label">Female Enrollment</div><div id="fem" class="value">—</div></div>
 </div>
 
 <div class="panel"><div class="toolbar">
-  <div><div class="toolbar-title">District-wise Enrollment Progress</div><div class="toolbar-sub">Sorted by target achievement • 40 Punjab districts</div></div>
+  <div><div class="toolbar-title">District-wise Enrollment Report</div><div class="toolbar-sub">Performance rule: Green = On Target • Red = Target Not Achieved</div></div>
   <div class="actions"><input id="q" placeholder="Search district" oninput="render()"><button class="secondary" onclick="downloadExcel()">Download Excel</button><button onclick="downloadPDF()">Download PDF</button></div>
 </div>
 <div class="table-wrap"><table id="dataTable"><thead><tr id="headRow"></tr></thead><tbody id="rows"></tbody></table></div>
@@ -104,109 +100,71 @@ async function load(){
  document.getElementById("e").textContent=f(ds.reduce((a,x)=>a+Number(x.target||0),0));
  document.getElementById("c").textContent=f(D.current_total||ds.reduce((a,x)=>a+Number(x.current||0),0));
  document.getElementById("a").textContent=f(ds.reduce((a,x)=>a+Number(x.increase||0),0));
+ document.getElementById("m").textContent=f(ds.reduce((a,x)=>a+Number(x.male||0),0));
+ document.getElementById("fem").textContent=f(ds.reduce((a,x)=>a+Number(x.female||0),0));
  render();
 }
 function render(){
- document.getElementById("rows").innerHTML=sorted().map((x,i)=>{
+ const rows=sorted().map((x,i)=>{
    const p=pct(x.progress_pct), width=Math.max(0,Math.min(100,p)), cls=p>=100?"good":"bad";
-   return "<tr><td class='sno'>"+(i+1)+"</td><td class='district'>"+x.district+"</td><td class='num'>"+f(x.baseline)+"</td><td class='num'>"+f(x.new_target)+"</td><td class='num'>"+f(x.target)+"</td><td class='num'>"+f(x.current)+"</td><td class='num'>"+f(x.male)+"</td><td class='num'>"+f(x.female)+"</td><td class='num'>"+f(x.other)+"</td><td class='num'>"+f(x.increase)+"</td><td class='achievement "+cls+"'><div style='display:flex;gap:8px;align-items:center'><div class='track'><div class='bar' style='width:"+width+"%'></div></div>"+p.toFixed(2)+"%</div></td></tr>";
+   return "<tr><td class='sno'>"+(i+1)+"</td><td class='district'>"+x.district+"</td><td class='num'>"+f(x.baseline)+"</td><td class='num'>"+f(x.new_target)+"</td><td class='num'>"+f(x.target)+"</td><td class='num'>"+f(x.current)+"</td><td class='num'>"+f(x.male)+"</td><td class='num'>"+f(x.female)+"</td><td class='num'>"+f(x.other)+"</td><td class='num'>"+f(x.increase)+"</td><td class='achievement "+cls+"'><div class='track'><div class='bar' style='width:"+width+"%'></div></div> "+p.toFixed(2)+"%</td></tr>";
  }).join("");
+ const ds=D.districts, total=(k)=>ds.reduce((a,x)=>a+Number(x[k]||0),0);
+ const tp=pct(ds.reduce((a,x)=>a+Number(x.progress_pct||0),0)/(ds.length||1));
+ const totalRow="<tr class='total-row'><td class='sno'>—</td><td>TOTAL</td><td class='num'>"+f(total("baseline"))+"</td><td class='num'>"+f(total("new_target"))+"</td><td class='num'>"+f(total("target"))+"</td><td class='num'>"+f(D.current_total||total("current"))+"</td><td class='num'>"+f(total("male"))+"</td><td class='num'>"+f(total("female"))+"</td><td class='num'>"+f(total("other"))+"</td><td class='num'>"+f(total("increase"))+"</td><td class='achievement'>"+tp.toFixed(2)+"%</td></tr>";
+ document.getElementById("rows").innerHTML=rows+totalRow;
 }
 function exportRows(){
- return sorted().map(x=>({"District":x.district,"Baseline 2026":x.baseline,"Target 2026":x.new_target,"Expected Enrollment 2026":x.target,["Current Enrollment "+dateShort()]:x.current,"Male":x.male,"Female":x.female,"Other":x.other,"New admission 2026":x.increase,"Target achieved":x.progress_pct+"%"}));
+ return sorted().map((x,i)=>({"S.No.":i+1,"District":x.district,"Baseline 2026":x.baseline,"Target 2026":x.new_target,"Expected Enrollment 2026":x.target,["Current Enrollment "+dateShort()]:x.current,"Male":x.male,"Female":x.female,"Other":x.other,"New admission 2026":x.increase,"Target achieved":x.progress_pct+"%"}));
 }
 function downloadExcel(){
  const ws=XLSX.utils.json_to_sheet(exportRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"District Progress");
  XLSX.writeFile(wb,"Punjab_District_Enrollment_Progress.xlsx");
 }
 function downloadPDF(){
- const {jsPDF}=window.jspdf;
- const doc=new jsPDF("l","mm","a4");
- const W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight();
+ const {jsPDF}=window.jspdf;const doc=new jsPDF("l","mm","a4");
+ const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+ const ds=D.districts,sum=k=>ds.reduce((a,x)=>a+Number(x[k]||0),0);
+ const navy=[36,73,111],head=[216,231,245],totalBg=[229,242,232],line=[205,215,225],text=[45,58,73];
  const reportDate=new Date(D.updated_at).toLocaleString("en-PK",{timeZone:"Asia/Karachi"});
- const ds=D.districts, sum=k=>ds.reduce((a,x)=>a+Number(x[k]||0),0);
- const navy=[18,53,91], light=[244,247,250], line=[190,198,208], text=[28,40,56];
- const pageFooter=()=>{
-   doc.setDrawColor(...line);doc.line(12,H-13,W-12,H-13);
-   doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(105,115,128);
-   doc.text("Punjab District Enrollment Progress • SIS PESRP",12,H-7);
-   doc.text("Page "+doc.internal.getNumberOfPages(),W-27,H-7);
- };
- const drawHeader=()=>{
-   doc.setFillColor(...navy);doc.rect(0,0,W,30,"F");
-   doc.setTextColor(255,255,255);doc.setFont("helvetica","bold");doc.setFontSize(8);
-   doc.text("PUNJAB SCHOOL EDUCATION DEPARTMENT • SIS PESRP",14,8);
-   doc.setFontSize(17);doc.text("Latest SIS Enrollment",14,17);
-   doc.setFont("helvetica","normal");doc.setFontSize(8.5);
-   doc.text("Punjab District-wise Enrollment Progress",14,24);
-   doc.text("Report Date / Time: "+reportDate,W-14,17,{align:"right"});
- };
- drawHeader();
+ const footer=()=>{doc.setDrawColor(...line);doc.line(12,H-12,W-12,H-12);doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(105,117,130);doc.text("Punjab District-wise Enrollment Dashboard • SIS PESRP",12,H-6);doc.text("Page "+doc.internal.getNumberOfPages(),W-25,H-6);};
+ const header=()=>{doc.setTextColor(...navy);doc.setFont("helvetica","bold");doc.setFontSize(16);doc.text("Punjab District-wise Enrollment Dashboard",W/2,10,{align:"center"});doc.setFontSize(10);doc.text("District Enrollment Progress • SIS PESRP",W/2,16,{align:"center"});doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(85,98,113);doc.text("Latest SIS report: "+reportDate,W/2,22,{align:"center"});};
+ header();
  const boxes=[
-   ["DISTRICTS",D.district_count||ds.length],
-   ["BASELINE 2026",sum("baseline")],
-   ["TARGET 2026",sum("new_target")],
-   ["EXPECTED ENROLLMENT 2026",sum("target")],
-   ["CURRENT ENROLLMENT",D.current_total||sum("current")],
-   ["NEW ADMISSION 2026",sum("increase")]
+  ["Districts",D.district_count||ds.length],
+  ["Baseline 2026",sum("baseline")],
+  ["Target 2026",sum("new_target")],
+  ["Expected Enrollment",sum("target")],
+  ["Current Enrollment",D.current_total||sum("current")],
+  ["New Admission 2026",sum("increase")],
+  ["Male Enrollment",sum("male")],
+  ["Female Enrollment",sum("female")]
  ];
- const gap=4, left=12, totalW=W-24, bw=(totalW-gap*5)/6;
- let bx=left;
- boxes.forEach(b=>{
-   doc.setFillColor(...light);doc.setDrawColor(...line);doc.roundedRect(bx,35,bw,18,2,2,"FD");
-   doc.setFont("helvetica","bold");doc.setFontSize(6.3);doc.setTextColor(90,101,115);doc.text(b[0],bx+3,41);
-   doc.setFontSize(10.5);doc.setTextColor(...text);doc.text(f(b[1]),bx+3,48);
-   bx+=bw+gap;
- });
- doc.setFont("helvetica","normal");doc.setFontSize(7.2);doc.setTextColor(70,80,92);
- doc.text("Achievement indicator: Green = On Target    Red = Target Not Achieved",12,58);
- const rows=sorted().map((x,i)=>[
-   String(i+1),x.district,f(x.baseline),f(x.new_target),f(x.target),f(x.current),
-   f(x.male),f(x.female),f(x.other),f(x.increase),pct(x.progress_pct).toFixed(2)+"%"
- ]);
+ const gap=3,left=12,bw=(W-24-gap*7)/8;let x=left;
+ boxes.forEach(b=>{doc.setFillColor(245,247,250);doc.setDrawColor(...line);doc.roundedRect(x,28,bw,17,2,2,"FD");doc.setFont("helvetica","normal");doc.setFontSize(6.2);doc.setTextColor(95,108,122);doc.text(b[0],x+bw/2,34,{align:"center"});doc.setFont("helvetica","bold");doc.setFontSize(9.5);doc.setTextColor(...navy);doc.text(f(b[1]),x+bw/2,41,{align:"center"});x+=bw+gap;});
+ doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(75,88,103);doc.text("Performance rule: Green = On Target • Red = Target Not achieved",12,51);
+ const rows=sorted().map((v,i)=>[i+1,v.district,f(v.baseline),f(v.new_target),f(v.target),f(v.current),f(v.male),f(v.female),f(v.other),f(v.increase),pct(v.progress_pct).toFixed(2)+"%"]);
  doc.autoTable({
-   startY:62,
-   margin:{left:12,right:12,bottom:18},
-   head:[["S.No.","District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment\n"+dateShort(),"Male","Female","Other","New admission 2026","Target achieved"]],
-   body:rows,theme:"grid",
-   styles:{font:"helvetica",fontSize:6.4,cellPadding:1.8,halign:"right",lineColor:line,lineWidth:.18,textColor:text,valign:"middle"},
-   headStyles:{fillColor:[231,237,244],textColor:[30,43,59],fontStyle:"bold",fontSize:6.1,halign:"center",valign:"middle",lineColor:[165,175,187]},
-   alternateRowStyles:{fillColor:[250,251,253]},
-   columnStyles:{
-     0:{halign:"center",cellWidth:10},1:{halign:"left",cellWidth:31},2:{cellWidth:20},3:{cellWidth:20},
-     4:{cellWidth:29},5:{cellWidth:29},6:{cellWidth:18},7:{cellWidth:18},8:{cellWidth:15},
-     9:{cellWidth:27},10:{cellWidth:23,halign:"center"}
-   },
-   didParseCell:data=>{
-     if(data.section==="body"&&data.column.index===10){
-       const v=parseFloat(String(data.cell.raw).replace("%",""));
-       data.cell.styles.textColor=v>=100?[22,128,60]:[198,40,40];data.cell.styles.fontStyle="bold";
-     }
-     if(data.section==="body"&&data.column.index===0){data.cell.styles.textColor=[100,110,122];data.cell.styles.fontStyle="bold";}
-   },
-   didDrawPage:data=>{
-     if(doc.internal.getNumberOfPages()>1) drawHeader();
-     pageFooter();
-   }
+  startY:55,margin:{left:12,right:12,bottom:17},
+  head:[["S.No.","District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment\n"+dateShort(),"Male","Female","Other","New admission 2026","Target achieved"]],
+  body:rows,theme:"grid",
+  styles:{font:"helvetica",fontSize:6.3,cellPadding:1.7,halign:"right",valign:"middle",lineColor:line,lineWidth:.18,textColor:text},
+  headStyles:{fillColor:head,textColor:navy,fontStyle:"bold",fontSize:6.0,halign:"center",valign:"middle"},
+  alternateRowStyles:{fillColor:[251,252,253]},
+  columnStyles:{0:{cellWidth:10,halign:"center"},1:{cellWidth:31,halign:"left"},2:{cellWidth:20},3:{cellWidth:20},4:{cellWidth:29},5:{cellWidth:29},6:{cellWidth:18},7:{cellWidth:18},8:{cellWidth:15},9:{cellWidth:27},10:{cellWidth:23,halign:"center"}},
+  didParseCell:d=>{if(d.section==="body"&&d.column.index===10){const v=parseFloat(String(d.cell.raw).replace("%",""));d.cell.styles.textColor=v>=100?[22,128,60]:[198,40,40];d.cell.styles.fontStyle="bold";}},
+  didDrawPage:d=>{if(doc.internal.getNumberOfPages()>1)header();footer();}
  });
- let y=doc.lastAutoTable.finalY+7;
- if(y>H-28){doc.addPage();drawHeader();y=38;}
- doc.setFillColor(...light);doc.setDrawColor(...line);doc.roundedRect(12,y-5,W-24,16,2,2,"FD");
- doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...text);
- doc.text("GRAND TOTAL",16,y+1);
- doc.setFont("helvetica","normal");
- const totalText=[
-   "Districts: "+(D.district_count||ds.length),
-   "Baseline: "+f(sum("baseline")),
-   "Target: "+f(sum("new_target")),
-   "Expected: "+f(sum("target")),
-   "Current: "+f(D.current_total||sum("current")),
-   "New admission: "+f(sum("increase"))
- ];
- doc.text(totalText.join("   •   "),16,y+7);
- pageFooter();
+ let y=doc.lastAutoTable.finalY+5;
+ if(y>H-26){doc.addPage();header();y=34;}
+ const totals=[D.district_count||ds.length,sum("baseline"),sum("new_target"),sum("target"),D.current_total||sum("current"),sum("male"),sum("female"),sum("other"),sum("increase")];
+ doc.setFillColor(...totalBg);doc.setDrawColor(190,210,195);doc.rect(12,y-4,W-24,14,"FD");
+ doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...navy);doc.text("TOTAL",15,y+2);
+ doc.setFont("helvetica","normal");doc.text("Districts: "+totals[0]+"   •   Baseline: "+f(totals[1])+"   •   Target: "+f(totals[2])+"   •   Expected: "+f(totals[3])+"   •   Current: "+f(totals[4])+"   •   New Admission: "+f(totals[8]),32,y+2);
+ footer();
  doc.save("Punjab_District_Enrollment_Progress.pdf");
 }
+
 load().catch(()=>document.getElementById("updated").textContent="Daily SIS data is not available yet. Run the GitHub Action.");
 </script>
 </body></html>
