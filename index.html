@@ -86,6 +86,7 @@ td:first-child{font-weight:600;color:#5d6b7e}
  th:first-child{background:#edf4fd;z-index:4}
  .district{min-width:135px}
 }
+.site-footer{text-align:center;padding:10px 28px 14px;color:#617286;font-size:10.5px;font-weight:600;border-top:1px solid #e2eaf2;background:#fff}
 .sno{width:42px;min-width:42px;max-width:42px;font-weight:700;color:#5d6b7e}
 @media(min-width:1051px){.actions .action{min-width:105px}.toolbar{gap:6px}}
 @media(max-width:700px){.actions{display:grid;grid-template-columns:repeat(2,1fr)}.actions .action{min-width:0}.sno{width:38px;min-width:38px;max-width:38px}}
@@ -124,7 +125,7 @@ td:first-child{font-weight:600;color:#5d6b7e}
   <div class="table-wrap"><table id="dataTable"><thead><tr id="headRow"></tr></thead><tbody id="rows"></tbody></table></div>
  </div>
 </main>
-</div><script>
+</div><footer class="site-footer">Dashboard developed by M.Sajid AEO Markaz Amli Moti (W)</footer><script>
 let D={districts:[]};
 const f=x=>Number(x||0).toLocaleString("en-US");
 const dateLabel=()=>{const d=new Date(D.updated_at);return d.toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"})};
@@ -179,7 +180,7 @@ function downloadExcel(){const ws=XLSX.utils.json_to_sheet(exportRows());const w
 function downloadPDF(){
  const {jsPDF}=window.jspdf;const doc=new jsPDF("p","mm","a4");const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();const ds=D.districts;const sum=k=>ds.reduce((a,x)=>a+Number(x[k]||0),0);const navy=[36,73,111],head=[216,231,245],line=[205,215,225],text=[45,58,73];const reportDate=new Date(D.updated_at).toLocaleString("en-PK",{timeZone:"Asia/Karachi"});const margin=6,tableWidth=W-(margin*2);
  const footer=()=>{doc.setDrawColor(...line);doc.line(margin,H-7,W-margin,H-7);doc.setFont("helvetica","normal");doc.setFontSize(5.5);doc.setTextColor(105,117,130);doc.text("Punjab District-wise Enrollment Dashboard • SIS PESRP",margin,H-3);doc.text("Page "+doc.internal.getNumberOfPages(),W-20,H-3)};
- const header=()=>{doc.setTextColor(...navy);doc.setFont("helvetica","bold");doc.setFontSize(13);doc.text("Punjab District-wise Enrollment Dashboard",W/2,7,{align:"center"});doc.setFontSize(8);doc.text("District Enrollment Progress • SIS PESRP",W/2,12,{align:"center"});doc.setFont("helvetica","normal");doc.setFontSize(6.2);doc.setTextColor(85,98,113);doc.text("Latest SIS report: "+reportDate,W/2,17,{align:"center"})};
+ const header=()=>{doc.setTextColor(...navy);doc.setFont("helvetica","bold");doc.setFontSize(13);doc.text("Punjab District-wise Enrollment Dashboard",W/2,7,{align:"center"});doc.setFontSize(8);doc.text("2026 Enrollment Target Progress",W/2,12,{align:"center"});doc.setFont("helvetica","normal");doc.setFontSize(6.2);doc.setTextColor(85,98,113);doc.text("Latest SIS report: "+reportDate,W/2,17,{align:"center"})};
  header();
  const boxes=[["Districts",D.district_count||ds.length],["Baseline 2026",sum("baseline")],["Target 2026",sum("new_target")],["Expected Enrollment",sum("target")],["Current Enrollment",D.current_total||sum("current")],["New Admission 2026",sum("increase")],["Target Achievement",(ds.length?ds.reduce((a,x)=>a+Number(x.progress_pct||0),0)/ds.length:0).toFixed(2)+"%"]];
  const gap=1.8,left=margin,bw=(tableWidth-gap*6)/7;let x=left;boxes.forEach(b=>{doc.setFillColor(245,247,250);doc.setDrawColor(...line);doc.roundedRect(x,20,bw,12,1.2,1.2,"FD");doc.setFont("helvetica","normal");doc.setFontSize(4.5);doc.setTextColor(95,108,122);doc.text(b[0],x+bw/2,25,{align:"center"});doc.setFont("helvetica","bold");doc.setFontSize(7.2);doc.setTextColor(...navy);doc.text(String(b[1]),x+bw/2,30,{align:"center"});x+=bw+gap});
