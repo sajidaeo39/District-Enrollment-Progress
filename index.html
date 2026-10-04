@@ -136,7 +136,7 @@ function sorted(){
  return D.districts.filter(x=>x.district.toLowerCase().includes(q)).sort((a,b)=>pct(b.progress_pct)-pct(a.progress_pct));
 }
 function headings(){
- const h=["S.No.","District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment "+dateShort(),"New admission 2026","Target achieved"];
+ const h=["S.No.","District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment "+dateShort(),"New admission 2026","2026 Target achieved"];
  document.getElementById("headRow").innerHTML=h.map(x=>"<th>"+x+"</th>").join("");
 }
 async function load(){
