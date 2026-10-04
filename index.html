@@ -160,7 +160,7 @@ function showTop10(){setView("top")}
 function showLast10(){setView("last")}
 function showAll(){setView("all")}
 function render(){
- const rows=sorted().map((x,i)=>{const p=pct(x.progress_pct),width=Math.max(0,Math.min(100,p)),cls=p>=100?"good":"bad";return "<tr><td class='sno'>"+(i+1)+"</td><td class='district'>"+x.district+"</td><td class='num'>"+f(x.baseline)+"</td><td class='num'>"+f(x.new_target)+"</td><td class='num'>"+f(x.target)+"</td><td class='num'>"+f(x.current)+"</td><td class='num'>"+f(x.increase)+"</td><td class='achievement "+cls+"'><div class='track'><div class='bar' style='width:"+width+"%'></div></div> "+p.toFixed(2)+"%</td></tr>"}).join("");
+ const rows=viewRows().map((x,i)=>{const p=pct(x.progress_pct),width=Math.max(0,Math.min(100,p)),cls=p>=100?"good":"bad";return "<tr><td class='sno'>"+(i+1)+"</td><td class='district'>"+x.district+"</td><td class='num'>"+f(x.baseline)+"</td><td class='num'>"+f(x.new_target)+"</td><td class='num'>"+f(x.target)+"</td><td class='num'>"+f(x.current)+"</td><td class='num'>"+f(x.increase)+"</td><td class='achievement "+cls+"'><div class='track'><div class='bar' style='width:"+width+"%'></div></div> "+p.toFixed(2)+"%</td></tr>"}).join("");
  const ds=D.districts,total=k=>ds.reduce((a,x)=>a+Number(x[k]||0),0);
  const tp=ds.length?ds.reduce((a,x)=>a+Number(x.progress_pct||0),0)/ds.length:0;
  const totalRow="<tr class='total-row'><td class='sno'>—</td><td>TOTAL</td><td class='num'>"+f(total("baseline"))+"</td><td class='num'>"+f(total("new_target"))+"</td><td class='num'>"+f(total("target"))+"</td><td class='num'>"+f(D.current_total||total("current"))+"</td><td class='num'>"+f(total("increase"))+"</td><td class='achievement'>"+tp.toFixed(2)+"%</td></tr>";
