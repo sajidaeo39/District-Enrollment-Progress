@@ -179,7 +179,7 @@ function exportRows(){return sorted().map((x,i)=>({"S.No.":i+1,"District":x.dist
 function downloadExcel(){const ws=XLSX.utils.json_to_sheet(exportRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"District Progress");XLSX.writeFile(wb,"Punjab_District_Enrollment_Progress.xlsx")}
 function downloadPDF(){
  const {jsPDF}=window.jspdf;
- const doc=new jsPDF("l","mm","legal");
+ const doc=new jsPDF("p","mm","legal");
  const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
  const ds=D.districts, sum=k=>ds.reduce((a,x)=>a+Number(x[k]||0),0);
  const navy=[36,73,111],head=[216,231,245],line=[205,215,225],text=[45,58,73];
@@ -222,8 +222,8 @@ function downloadPDF(){
    startY:38,margin:{left:margin,right:margin,bottom:10},tableWidth,
    head:[["S.No.","District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment "+dateShort(),"New Admission 2026","2026 Target achieved"]],
    body:rows,theme:"grid",
-   styles:{font:"helvetica",fontSize:7,cellPadding:{top:1.5,right:1.0,bottom:1.5,left:1.0},halign:"center",valign:"middle",lineColor:line,lineWidth:.15,textColor:text,overflow:"linebreak",minCellHeight:6.2},
-   headStyles:{fillColor:head,textColor:navy,fontStyle:"bold",fontSize:6.2,halign:"center",valign:"middle",cellPadding:{top:1.2,right:1,bottom:1.2,left:1},minCellHeight:9},
+   styles:{font:"helvetica",fontSize:5.8,cellPadding:{top:1.05,right:.8,bottom:1.05,left:.8},halign:"center",valign:"middle",lineColor:line,lineWidth:.15,textColor:text,overflow:"linebreak",minCellHeight:6.2},
+   headStyles:{fillColor:head,textColor:navy,fontStyle:"bold",fontSize:5.5,halign:"center",valign:"middle",cellPadding:{top:1.2,right:1,bottom:1.2,left:1},minCellHeight:7},
    alternateRowStyles:{fillColor:[251,252,253]},
    columnStyles:{0:{cellWidth:widths[0]},1:{cellWidth:widths[1]},2:{cellWidth:widths[2]},3:{cellWidth:widths[3]},4:{cellWidth:widths[4]},5:{cellWidth:widths[5]},6:{cellWidth:widths[6]},7:{cellWidth:widths[7]}},
    didParseCell:d=>{if(d.section==="body"&&d.column.index===7){const v=parseFloat(String(d.cell.raw).replace("%",""));d.cell.styles.textColor=v>=100?[22,128,60]:[198,40,40];d.cell.styles.fontStyle="bold"}},
