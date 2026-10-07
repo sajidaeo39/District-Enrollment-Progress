@@ -48,17 +48,28 @@ def fetch_district(session, district_id, csrf):
         "s_id_emis_code": "",
         "csrf_test_name": csrf,
     }
-    r = session.post(
-        ENROLLMENT_URL,
-        data=payload,
-        headers={
-            "X-Requested-With": "XMLHttpRequest",
-            "Referer": PAGE_URL,
-        },
-        timeout=45,
-    )
-    r.raise_for_status()
-    data = r.json()
+    headers = {
+        "X-Requested-With": "XMLHttpRequest",
+        "Referer": PAGE_URL,
+        "Origin": SIS_BASE,
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+    }
+    last_error = None
+    for attempt in range(1, 5):
+        try:
+            r = session.post(ENROLLMENT_URL, data=payload, headers=headers, timeout=60)
+            if r.status_code >= 500:
+                last_error = RuntimeError(f"SIS HTTP {r.status_code}")
+                time.sleep(attempt * 3)
+                continue
+            r.raise_for_status()
+            data = r.json()
+            break
+        except (requests.RequestException, ValueError) as exc:
+            last_error = exc
+            time.sleep(attempt * 3)
+    else:
+        raise RuntimeError(f"Unable to fetch district {district_id} after 4 attempts: {last_error}")
     total = int(str(data["total"]).replace(",", ""))
     return {
         "male": int(str(data.get("male_count", 0)).replace(",", "")),
@@ -81,7 +92,7 @@ def main():
     session = requests.Session()
     session.headers.update({
         "Accept": "application/json, text/javascript, */*; q=0.01",
-        "User-Agent": "Mozilla/5.0 District-Enrollment-Progress",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
     })
 
     csrf = get_csrf(session)
