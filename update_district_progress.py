@@ -12,7 +12,7 @@ TARGET_CSV = ROOT / "data" / "district_targets.csv"
 OUT = ROOT / "data" / "district_progress.json"
 
 SIS_BASE = "https://sis.pesrp.edu.pk"
-PAGE_URL = f"{SIS_BASE}/dashboard/enrollment"
+PAGE_URL = f"{SIS_BASE}/dashboard/index"
 ENROLLMENT_URL = f"{SIS_BASE}/dashboard_revamp/get_gender_summary_pie"
 
 DISTRICTS = [
