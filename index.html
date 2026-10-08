@@ -1,237 +1,75 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Punjab District Enrollment Progress</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Punjab Enrollment Progress Dashboard</title>
 <style>
-:root{--page-gutter:28px;--blue:#0b5ed7;--dark:#17345f;--bg:#f4f7fb;--card:#fff;--line:#dfe5ee;--muted:#667085;--red:#c62828;--green:#16803c;--content:100%;--control-h:38px}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{background:#fff;font-family:"Segoe UI",Arial,sans-serif;color:#172033}
-header{background:#fff;color:#17344d;padding:7px 0 8px;box-shadow:0 2px 8px rgba(23,52,77,.045);border-bottom:1px solid #e2eaf2}
-.header-inner{text-align:center;width:calc(100% - (2 * var(--page-gutter)));max-width:none;margin:0 auto;padding:0}
-header h1{display:block;width:100%;max-width:none;margin:0;padding:7px 14px;background:#f4f8fc;border:1px solid #e1eaf3;border-radius:9px;font-size:22px;font-weight:750;letter-spacing:.1px;color:#17344d;line-height:1.2}
-header p{margin:4px 0 0;color:#617286;font-size:10.5px;letter-spacing:.15px;font-weight:600}
-.updated{display:inline-block;margin-top:4px!important;padding:3px 9px;border:1px solid #dbe7f1;border-radius:999px;background:#f7fafc;font-size:10.5px!important;font-weight:650;color:#52657a!important}
-.page-shell{width:100%;min-height:100vh}
-.main-content{width:100%;padding:8px var(--page-gutter) 22px}
-.cards{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;width:100%;margin:0 0 10px}
-.card{background:#fff;border:1px solid #dfe7ef;border-radius:10px;padding:8px 7px;box-shadow:0 2px 8px rgba(25,54,79,.055);min-width:0;height:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.card:nth-child(7n+1){background:#f2f7fb}.card:nth-child(7n+1) .value{color:#315b7d}
-.card:nth-child(7n+2){background:#f2f8f6}.card:nth-child(7n+2) .value{color:#246c5c}
-.card:nth-child(7n+3){background:#f1f8f4}.card:nth-child(7n+3) .value{color:#24784f}
-.card:nth-child(7n+4){background:#fff5f2}.card:nth-child(7n+4) .value{color:#a84e40}
-.card:nth-child(7n+5){background:#fff9ee}.card:nth-child(7n+5) .value{color:#916a1c}
-.card:nth-child(7n+6){background:#f5f3fb}.card:nth-child(7n+6) .value{color:#66599c}
-.card:nth-child(7n){background:#f2f6fb}.card:nth-child(7n) .value{color:#315b7d}
-.label{font-size:9.5px;color:#5f7080;font-weight:650;letter-spacing:.05px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.value{font-size:18px;line-height:1.1;font-weight:750;margin-top:4px;text-align:center}
-.tabs{display:flex;gap:7px;flex-wrap:nowrap;overflow-x:auto;justify-content:center;margin:0 0 9px;padding:0 1px;scrollbar-width:thin}
-.tab{background:#fff;border:1px solid #cbd5e1;border-radius:7px;padding:0 15px;height:var(--control-h);min-width:130px;white-space:nowrap;font-size:12px;font-weight:650;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
-.tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
-.panel{width:100%;background:#fff}
-.toolbar{display:flex;gap:7px;align-items:center;justify-content:center;flex-wrap:nowrap;width:100%;background:#fff;border:1px solid var(--line);padding:9px;border-radius:10px;margin:0 0 9px;box-shadow:0 2px 7px rgba(25,54,79,.04);overflow:hidden}
-.toolbar-title{font-size:12px;font-weight:700;color:#17345f;white-space:nowrap}
-.toolbar input{height:var(--control-h);padding:0 10px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;font:12px Segoe UI,Arial,sans-serif;color:#172033;min-width:0;width:min(390px,34vw);flex:1 1 390px}
-.actions{display:flex;gap:7px;flex:0 0 auto}
-.actions .view-btn{background:#0b5ed7}
-.actions .view-btn.active{background:#17345f;box-shadow:0 0 0 2px #d7e5f5 inset}
-.action{height:var(--control-h);border:0;border-radius:7px;padding:0 12px;background:#0f766e;color:#fff;font:650 12px Segoe UI,Arial,sans-serif;cursor:pointer;white-space:nowrap;min-width:112px}
-.action:hover{opacity:.9}.pdf{background:#b42318}
-.table-wrap{width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:calc(100vh - 255px);box-shadow:0 2px 7px rgba(25,54,79,.035)}
-table{border-collapse:collapse;width:100%;min-width:0;table-layout:fixed;font-size:10px}
-th,td{padding:7px 5px;white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.2;border-bottom:1px solid var(--line);text-align:center!important;vertical-align:middle!important;font-variant-numeric:tabular-nums}
-th{position:sticky;top:0;background:#edf4fd;color:#17345f;z-index:3;font-weight:700}
-th:first-child,td:first-child{text-align:center!important}
-td:first-child{font-weight:600;color:#5d6b7e}
-.district{font-weight:650;color:#172033}
-.num{font-variant-numeric:tabular-nums}
-.achievement{font-weight:700}
-.good{color:var(--green)}.bad{color:var(--red)}
-.track{height:6px;background:#e6ebf0;border-radius:8px;min-width:58px;display:inline-block;vertical-align:middle;overflow:hidden}
-.bar{height:6px;background:#16803c;border-radius:8px}
-.total-row td{background:#edf4fd!important;font-weight:800;color:#17345f;border-top:2px solid #b9cbe0}
-@media(max-width:1050px){
- .main-content{padding:8px 14px 18px}
- .cards{grid-template-columns:repeat(4,minmax(0,1fr))}
- .toolbar{justify-content:flex-start}
+:root{--blue:#0b5ed7;--navy:#17345f;--bg:#f4f7fb;--line:#dfe5ee;--muted:#667085;--green:#16803c;--red:#c62828}
+*{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:#fff;color:#172033}
+header{padding:8px 20px;border-bottom:1px solid #e2eaf2;box-shadow:0 2px 8px rgba(23,52,77,.05);text-align:center}
+h1{margin:0;padding:8px;background:#f4f8fc;border:1px solid #e1eaf3;border-radius:9px;color:#17344d;font-size:22px}.sub{font-size:11px;color:#617286;margin:4px}.updated{display:inline-block;font-size:10px;padding:3px 9px;border:1px solid #dbe7f1;border-radius:99px;color:#52657a;background:#f7fafc}
+main{padding:10px 20px}.cards{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-bottom:9px}.card{border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center;min-height:66px;background:#f8fafc}.label{font-size:9px;color:var(--muted);font-weight:650}.value{font-size:17px;font-weight:750;color:#315b7d;margin-top:4px}
+.filters{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;border:1px solid var(--line);border-radius:10px;padding:9px;margin-bottom:9px}.filters select,.filters input,.btn{height:37px;border:1px solid #cbd5e1;border-radius:7px;background:white;padding:0 9px;font:12px "Segoe UI";min-width:0}.btn{background:var(--blue);color:white;border:0;cursor:pointer;font-weight:650}.btn.secondary{background:#0f766e}.btn.pdf{background:#b42318}
+.table-wrap{border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:calc(100vh - 270px)}table{border-collapse:collapse;width:100%;font-size:10px;min-width:1120px}th,td{padding:7px 5px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}th{position:sticky;top:0;background:#edf4fd;color:var(--navy);z-index:2}td.name{text-align:left;font-weight:650}.good{color:var(--green);font-weight:750}.bad{color:var(--red);font-weight:750}.total{background:#edf4fd;font-weight:800;color:var(--navy)}
+.progress{height:6px;width:70px;background:#e6ebf0;border-radius:8px;display:inline-block;overflow:hidden;vertical-align:middle}.bar{height:100%;background:#16803c}
+footer{text-align:center;border-top:1px solid #e2eaf2;padding:10px;color:#617286;font-size:10px}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(4,1fr)}.filters{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){main{padding:7px}.cards{grid-template-columns:repeat(4,1fr);gap:5px}.card{min-height:55px;padding:5px 2px}.label{font-size:7px}.value{font-size:12px}.filters{grid-template-columns:1fr 1fr;padding:7px}.filters input{grid-column:1/-1}h1{font-size:17px}}
+</style></head>
+<body>
+<header><h1>Punjab Enrollment Progress Dashboard</h1><div class="sub">District → Wing → Tehsil → Markaz → School | 2026 Enrollment Targets</div><div id="updated" class="updated">● SIS Data Updated: Loading…</div></header>
+<main>
+<div class="cards">
+<div class="card"><div class="label">Schools</div><div id="cSchools" class="value">—</div></div>
+<div class="card"><div class="label">Baseline</div><div id="cBase" class="value">—</div></div>
+<div class="card"><div class="label">2026 Target</div><div id="cTarget" class="value">—</div></div>
+<div class="card"><div class="label">Male Current</div><div id="cMale" class="value">—</div></div>
+<div class="card"><div class="label">Female Current</div><div id="cFemale" class="value">—</div></div>
+<div class="card"><div class="label">Total Current</div><div id="cCurrent" class="value">—</div></div>
+<div class="card"><div class="label">Remaining</div><div id="cRemain" class="value">—</div></div>
+<div class="card"><div class="label">Progress</div><div id="cProgress" class="value">—</div></div>
+</div>
+<div class="filters">
+<select id="district"><option value="">All Districts</option></select><select id="wing"><option value="">All Wings</option></select>
+<select id="tehsil"><option value="">All Tehsils</option></select><select id="markaz"><option value="">All Markaz</option></select>
+<input id="search" placeholder="Search EMIS / school name"><button class="btn" onclick="resetFilters()">Reset</button><button class="btn secondary" onclick="downloadExcel()">Download Excel</button><button class="btn pdf" onclick="window.print()">Print / PDF</button>
+</div>
+<div class="table-wrap"><table><thead><tr>
+<th>S.No.</th><th>District</th><th>Wing</th><th>Tehsil</th><th>Markaz</th><th>EMIS</th><th>School</th>
+<th>Male Baseline</th><th>Female Baseline</th><th>Male Target 2026</th><th>Female Target 2026</th>
+<th>Male Current</th><th>Female Current</th><th>Total Current</th><th>Remaining</th><th>Progress %</th>
+</tr></thead><tbody id="rows"></tbody></table></div>
+</main><footer>Punjab Enrollment Dashboard | SIS live current enrollment + fixed master baseline/targets</footer>
+<script>
+let DATA=[];
+const n=v=>Number(v||0).toLocaleString("en-US");
+const val=(r,...keys)=>{for(const k of keys)if(r[k]!==undefined)return Number(r[k]||0);return 0};
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"": "&quot;","'":"&#39;"}[m]));}
+function uniq(arr){return [...new Set(arr.filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b)))}
+function setOptions(id,values,first){const e=document.getElementById(id),old=e.value;e.innerHTML='<option value="">'+first+'</option>'+uniq(values).map(v=>'<option>'+esc(v)+'</option>').join('');if(values.includes(old))e.value=old}
+function filtered(){
+ const d=district.value,w=wing.value,t=tehsil.value,m=markaz.value,q=search.value.trim().toLowerCase();
+ return DATA.filter(r=>(!d||r.District===d)&&(!w||r.Wing===w)&&(!t||r.Tehsil===t)&&(!m||r.Markaz===m)&&(!q||String(r.EMIS).includes(q)||String(r["School Name"]||r.School||"").toLowerCase().includes(q)))
 }
-@media(max-width:700px){
- html,body{width:100%;max-width:100%;overflow-x:hidden}
- body{background:#f6f8fb}
- header{padding:7px 0 8px}
- .header-inner{width:calc(100% - 14px);padding:0}
- header h1{font-size:17px!important;padding:6px 7px}
- header p{font-size:9px;line-height:1.35}
- .updated{font-size:9.5px!important}
- .main-content{padding:7px}
- .cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:0 0 8px}
- .card{height:auto;min-height:55px;padding:6px 2px;border-radius:9px}
- .label{font-size:7.5px;line-height:1.15;white-space:normal;overflow-wrap:anywhere}
- .value{font-size:13px;line-height:1.05;margin-top:4px;overflow-wrap:anywhere}
- .tabs{justify-content:flex-start;gap:5px;overflow-x:auto;margin:0 0 7px}
- .tab{height:37px;min-width:auto;padding:0 12px;font-size:10.5px;border-radius:18px}
- .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;margin:0 0 8px;overflow:visible}
- .toolbar-title{grid-column:1/-1}
- .toolbar input{grid-column:1/-1;width:100%;height:39px;flex:none}
- .actions{display:contents}
- .action{width:100%;min-width:0;height:39px;font-size:11px}
- .table-wrap{max-height:60vh;-webkit-overflow-scrolling:touch}
- table{width:max-content;min-width:100%;table-layout:auto}
- th,td{padding:8px 6px;min-width:70px;font-size:9.5px!important;line-height:1.25}
- th:first-child,td:first-child{min-width:48px;position:sticky;left:0;background:#fff;z-index:2}
- th:first-child{background:#edf4fd;z-index:4}
- .district{min-width:135px}
+function refreshFilters(){
+ const base=DATA.filter(r=>!district.value||r.District===district.value);
+ setOptions("wing",base.map(r=>r.Wing),"All Wings");
+ const b2=base.filter(r=>!wing.value||r.Wing===wing.value);setOptions("tehsil",b2.map(r=>r.Tehsil),"All Tehsils");
+ const b3=b2.filter(r=>!tehsil.value||r.Tehsil===tehsil.value);setOptions("markaz",b3.map(r=>r.Markaz),"All Markaz");
 }
-.site-footer{text-align:center;padding:10px 28px 14px;color:#617286;font-size:10.5px;font-weight:600;border-top:1px solid #e2eaf2;background:#fff}
-.sno{width:42px;min-width:42px;max-width:42px;font-weight:700;color:#5d6b7e}
-@media(min-width:1051px){.actions .action{min-width:105px}.toolbar{gap:6px}}
-@media(max-width:700px){.actions{display:grid;grid-template-columns:repeat(2,1fr)}.actions .action{min-width:0}.sno{width:38px;min-width:38px;max-width:38px}}
-</style>
-</head>
-<body><div class="page-shell">
-<header>
- <div class="header-inner">
-  <h1>Punjab District-wise Enrollment Progress</h1>
-  <p>Dashboard developed by M.Sajid AEO Markaz Amli Moti (W)</p>
-  <div id="updated" class="updated">● SIS Data Updated: Loading…</div>
- </div>
-</header>
-<main class="main-content">
- <div class="cards">
-  <div class="card"><div class="label">Districts</div><div id="n" class="value">—</div></div>
-  <div class="card"><div class="label">Baseline 2026</div><div id="b" class="value">—</div></div>
-  <div class="card"><div class="label">Target 2026</div><div id="t" class="value">—</div></div>
-  <div class="card"><div class="label">Expected Enrollment</div><div id="e" class="value">—</div></div>
-  <div class="card"><div class="label">Current Enrollment</div><div id="c" class="value">—</div></div>
-  <div class="card"><div class="label">New Admission 2026</div><div id="a" class="value">—</div></div>
-  <div class="card"><div class="label">Target Achievement</div><div id="overall" class="value">—</div></div>
- </div>
- <div class="panel">
-  <div class="toolbar">
-   <div class="toolbar-title">District Enrollment Report</div>
-   <input id="q" placeholder="Search district" oninput="render()">
-   <div class="actions">
-    <button id="topBtn" class="action view-btn" onclick="showTop10()">Top 10 Districts</button>
-    <button id="lastBtn" class="action view-btn" onclick="showLast10()">Last 10 Districts</button>
-    <button id="allBtn" class="action view-btn active" onclick="showAll()">All Districts</button>
-    <button class="action" onclick="downloadExcel()">Download Excel</button>
-    <button class="action pdf" onclick="downloadPDF()">Download PDF</button>
-   </div>
-  </div>
-  <div class="table-wrap"><table id="dataTable"><thead><tr id="headRow"></tr></thead><tbody id="rows"></tbody></table></div>
- </div>
-</main>
-</div><footer class="site-footer">Dashboard developed by M.Sajid AEO Markaz Amli Moti (W)</footer><script>
-let D={districts:[]};
-const f=x=>Number(x||0).toLocaleString("en-US");
-const dateLabel=()=>{const d=new Date(D.updated_at);return d.toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"})};
-const dateShort=()=>{const d=new Date(D.updated_at);return d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})};
-function pct(x){return Number(x||0)}
-function sorted(){
- const q=document.getElementById("q").value.toLowerCase();
- return D.districts.filter(x=>x.district.toLowerCase().includes(q)).sort((a,b)=>pct(b.progress_pct)-pct(a.progress_pct));
-}
-function headings(){
- const h=["S.No.","District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment "+dateShort(),"New admission 2026","2026 Target achieved"];
- document.getElementById("headRow").innerHTML=h.map(x=>"<th>"+x+"</th>").join("");
-}
-async function load(){
- const r=await fetch("data/district_progress.json?"+Date.now()); if(!r.ok)throw Error("data unavailable");
- D=await r.json(); headings();
- document.getElementById("updated").textContent="● SIS Data Updated: "+new Date(D.updated_at).toLocaleString("en-GB",{timeZone:"Asia/Karachi",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
- const ds=D.districts;
- document.getElementById("n").textContent=D.district_count||ds.length;
- document.getElementById("b").textContent=f(ds.reduce((a,x)=>a+Number(x.baseline||0),0));
- document.getElementById("t").textContent=f(ds.reduce((a,x)=>a+Number(x.new_target||0),0));
- document.getElementById("e").textContent=f(ds.reduce((a,x)=>a+Number(x.target||0),0));
- document.getElementById("c").textContent=f(D.current_total||ds.reduce((a,x)=>a+Number(x.current||0),0));
- document.getElementById("a").textContent=f(ds.reduce((a,x)=>a+Number(x.increase||0),0));
- const overall=ds.length?ds.reduce((a,x)=>a+Number(x.progress_pct||0),0)/ds.length:0;
- document.getElementById("overall").textContent=overall.toFixed(2)+"%";
- render();
-}
-let districtView="all";
-function viewRows(){const rows=sorted();if(districtView==="top")return rows.slice(0,10);if(districtView==="last")return rows.slice(-10);return rows}
-function setView(v){districtView=v;document.getElementById("topBtn").classList.toggle("active",v==="top");document.getElementById("lastBtn").classList.toggle("active",v==="last");document.getElementById("allBtn").classList.toggle("active",v==="all");render()}
-function showTop10(){setView("top")}
-function showLast10(){setView("last")}
-function showAll(){setView("all")}
 function render(){
- const selected=viewRows();
- const rows=selected.map((x,i)=>{const p=pct(x.progress_pct),width=Math.max(0,Math.min(100,p)),cls=p>=100?"good":"bad";return "<tr><td class='sno'>"+(i+1)+"</td><td class='district'>"+x.district+"</td><td class='num'>"+f(x.baseline)+"</td><td class='num'>"+f(x.new_target)+"</td><td class='num'>"+f(x.target)+"</td><td class='num'>"+f(x.current)+"</td><td class='num'>"+f(x.increase)+"</td><td class='achievement "+cls+"'><div class='track'><div class='bar' style='width:"+width+"%'></div></div> "+p.toFixed(2)+"%</td></tr>"}).join("");
- const total=k=>selected.reduce((a,x)=>a+Number(x[k]||0),0);
- const tp=selected.length?selected.reduce((a,x)=>a+Number(x.progress_pct||0),0)/selected.length:0;
- document.getElementById("n").textContent=selected.length;
- document.getElementById("b").textContent=f(total("baseline"));
- document.getElementById("t").textContent=f(total("new_target"));
- document.getElementById("e").textContent=f(total("target"));
- document.getElementById("c").textContent=f(total("current"));
- document.getElementById("a").textContent=f(total("increase"));
- document.getElementById("overall").textContent=tp.toFixed(2)+"%";
- const totalRow="<tr class='total-row'><td class='sno'>—</td><td>TOTAL</td><td class='num'>"+f(total("baseline"))+"</td><td class='num'>"+f(total("new_target"))+"</td><td class='num'>"+f(total("target"))+"</td><td class='num'>"+f(total("current"))+"</td><td class='num'>"+f(total("increase"))+"</td><td class='achievement'>"+tp.toFixed(2)+"%</td></tr>";
- document.getElementById("rows").innerHTML=rows+totalRow;
+ const rows=filtered();let sums={base:0,target:0,male:0,female:0,current:0,remain:0};
+ const html=rows.map((r,i)=>{
+   const mb=val(r,"Male Baseline"),fb=val(r,"Female Baseline"),mt=val(r,"Male Target 2026","2026 Male target "),ft=val(r,"Female Target 2026","2026 female target"),mc=val(r,"Male Current"),fc=val(r,"Female Current"),tc=val(r,"Total Current");
+   const target=mt+ft,current=tc||mc+fc,remain=Math.max(target-current,0),progress=target?current/target*100:0;
+   sums.base+=mb+fb;sums.target+=target;sums.male+=mc;sums.female+=fc;sums.current+=current;sums.remain+=remain;
+   return '<tr><td>'+(i+1)+'</td><td>'+esc(r.District)+'</td><td>'+esc(r.Wing)+'</td><td>'+esc(r.Tehsil)+'</td><td>'+esc(r.Markaz)+'</td><td>'+esc(r.EMIS)+'</td><td class="name">'+esc(r["School Name"]||r.School)+'</td><td>'+n(mb)+'</td><td>'+n(fb)+'</td><td>'+n(mt)+'</td><td>'+n(ft)+'</td><td>'+n(mc)+'</td><td>'+n(fc)+'</td><td>'+n(current)+'</td><td>'+n(remain)+'</td><td class="'+(progress>=100?"good":"bad")+'"><span class="progress"><span class="bar" style="width:'+Math.min(progress,100)+'%"></span></span> '+progress.toFixed(1)+'%</td></tr>'
+ }).join("");
+ const p=sums.target?sums.current/sums.target*100:0;
+ document.getElementById("rows").innerHTML=html+'<tr class="total"><td>—</td><td colspan="6">TOTAL</td><td colspan="2">'+n(sums.base)+'</td><td colspan="2">'+n(sums.target)+'</td><td>'+n(sums.male)+'</td><td>'+n(sums.female)+'</td><td>'+n(sums.current)+'</td><td>'+n(sums.remain)+'</td><td>'+p.toFixed(1)+'%</td></tr>';
+ cSchools.textContent=n(rows.length);cBase.textContent=n(sums.base);cTarget.textContent=n(sums.target);cMale.textContent=n(sums.male);cFemale.textContent=n(sums.female);cCurrent.textContent=n(sums.current);cRemain.textContent=n(sums.remain);cProgress.textContent=p.toFixed(1)+"%";
 }
-function exportRows(){return sorted().map((x,i)=>({"S.No.":i+1,"District":x.district,"Baseline 2026":x.baseline,"Target 2026":x.new_target,"Expected Enrollment 2026":x.target,["Current Enrollment "+dateShort()]:x.current,"New admission 2026":x.increase,"Target achieved":x.progress_pct+"%"}))}
-function downloadExcel(){const ws=XLSX.utils.json_to_sheet(exportRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"District Progress");XLSX.writeFile(wb,"Punjab_District_Enrollment_Progress.xlsx")}
-function downloadPDF(){
- const {jsPDF}=window.jspdf;
- const doc=new jsPDF("p","mm","legal");
- const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
- const ds=D.districts, sum=k=>ds.reduce((a,x)=>a+Number(x[k]||0),0);
- const navy=[36,73,111],head=[216,231,245],line=[205,215,225],text=[45,58,73];
- const reportDate=new Date(D.updated_at).toLocaleString("en-PK",{timeZone:"Asia/Karachi"});
- const nowPK=new Date(); const fileDate=nowPK.toLocaleDateString("en-GB",{timeZone:"Asia/Karachi",day:"2-digit",month:"2-digit",year:"numeric"}).replaceAll("/","-"); const fileTime=nowPK.toLocaleTimeString("en-US",{timeZone:"Asia/Karachi",hour:"2-digit",minute:"2-digit",hour12:true}).replace(/:/g,"-").replace(" ","-");
- const margin=7,tableWidth=W-(margin*2);
- const footer=()=>{
-   doc.setDrawColor(...line);doc.line(margin,H-9,W-margin,H-9);
-   doc.setFont("helvetica","normal");doc.setFontSize(6);
-   doc.setTextColor(105,117,130);
-   doc.text("Dashboard developed by M.Sajid AEO Markaz Amli Moti (W)",W/2,H-4,{align:"center"});
- };
- const header=()=>{
-   doc.setTextColor(...navy);doc.setFont("helvetica","bold");doc.setFontSize(13);
-   doc.text("Punjab District-wise Enrollment Dashboard",W/2,8,{align:"center"});
-   doc.setFontSize(8);doc.text("2026 Enrollment Target Progress",W/2,13,{align:"center"});
-   doc.setFont("helvetica","normal");doc.setFontSize(6.2);doc.setTextColor(85,98,113);
-   doc.text("Latest SIS report: "+reportDate,W/2,18,{align:"center"});
- };
- header();
- const boxes=[
-   ["Districts",D.district_count||ds.length,[242,247,252],[49,91,125]],
-   ["Baseline 2026",sum("baseline"),[242,248,246],[36,108,92]],
-   ["Target 2026",sum("new_target"),[241,248,244],[36,120,79]],
-   ["Expected Enrollment",sum("target"),[255,245,242],[168,78,64]],
-   ["Current Enrollment",D.current_total||sum("current"),[255,249,238],[145,106,28]],
-   ["New Admission 2026",sum("increase"),[245,243,251],[102,89,156]],
-   ["Target Achievement",(ds.length?ds.reduce((a,x)=>a+Number(x.progress_pct||0),0)/ds.length:0).toFixed(2)+"%",[242,246,251],[49,91,125]]
- ];
- const gap=1.5,left=margin,bw=(tableWidth-gap*6)/7;let x=left;
- boxes.forEach(b=>{
-   doc.setFillColor(...b[2]);doc.setDrawColor(...line);doc.roundedRect(x,21,bw,16,1.4,1.4,"FD");
-   doc.setFont("helvetica","normal");doc.setFontSize(4.6);doc.setTextColor(95,108,122);doc.text(b[0],x+bw/2,27,{align:"center"});
-   doc.setFont("helvetica","bold");doc.setFontSize(8.4);doc.setTextColor(...b[3]);doc.text(String(b[1]),x+bw/2,33.5,{align:"center"});
-   x+=bw+gap;
- });
- const rows=sorted().map((v,i)=>[i+1,v.district,f(v.baseline),f(v.new_target),f(v.target),f(v.current),f(v.increase),pct(v.progress_pct).toFixed(2)+"%"]);
- const weights=[0.05,0.17,0.12,0.12,0.16,0.16,0.11,0.11],widths=weights.map(v=>tableWidth*v);
- doc.autoTable({
-   startY:41,margin:{left:margin,right:margin,bottom:12},tableWidth,
-   head:[["S.No.","District","Baseline 2026","Target 2026","Expected Enrollment 2026","Current Enrollment "+dateShort(),"New Admission 2026","2026 Target achieved"]],
-   body:rows,theme:"grid",
-   styles:{font:"helvetica",fontSize:5.7,cellPadding:{top:0.95,right:.75,bottom:0.95,left:.75},halign:"center",valign:"middle",lineColor:line,lineWidth:.15,textColor:text,overflow:"linebreak",minCellHeight:6.2},
-   headStyles:{fillColor:head,textColor:navy,fontStyle:"bold",fontSize:5.5,halign:"center",valign:"middle",cellPadding:{top:1.2,right:1,bottom:1.2,left:1},minCellHeight:6.8},
-   alternateRowStyles:{fillColor:[251,252,253]},
-   columnStyles:{0:{cellWidth:widths[0]},1:{cellWidth:widths[1]},2:{cellWidth:widths[2]},3:{cellWidth:widths[3]},4:{cellWidth:widths[4]},5:{cellWidth:widths[5]},6:{cellWidth:widths[6]},7:{cellWidth:widths[7]}},
-   didParseCell:d=>{if(d.section==="body"&&d.column.index===7){const v=parseFloat(String(d.cell.raw).replace("%",""));d.cell.styles.textColor=v>=100?[22,128,60]:[198,40,40];d.cell.styles.fontStyle="bold"}},
-   didDrawPage:d=>{if(doc.internal.getNumberOfPages()>1)header();footer()}
- });
- footer();
- doc.save("District_wise_enrollment_"+fileDate+"_"+fileTime+".pdf");
-}
-load().catch(()=>document.getElementById("updated").textContent="Daily SIS data is not available yet. Run the GitHub Action.");
-</script>
-</body></html>
+function resetFilters(){district.value=wing.value=tehsil.value=markaz.value=search.value="";refreshFilters();render()}
+["district","wing","tehsil","markaz"].forEach(id=>document.getElementById(id).addEventListener("change",()=>{refreshFilters();render()}));search.addEventListener("input",render);
+function downloadExcel(){const rows=filtered();let csv=["District,Wing,Tehsil,Markaz,EMIS,School,Male Baseline,Female Baseline,Male Target 2026,Female Target 2026,Male Current,Female Current,Total Current,Remaining,Progress %"];for(const r of rows){const mb=val(r,"Male Baseline"),fb=val(r,"Female Baseline"),mt=val(r,"Male Target 2026","2026 Male target "),ft=val(r,"Female Target 2026","2026 female target"),mc=val(r,"Male Current"),fc=val(r,"Female Current"),tc=val(r,"Total Current")||mc+fc,t=mt+ft,p=t?tc/t*100:0;csv.push([r.District,r.Wing,r.Tehsil,r.Markaz,r.EMIS,r["School Name"]||r.School,mb,fb,mt,ft,mc,fc,tc,Math.max(t-tc,0),p.toFixed(2)+"%"].map(x=>'"'+String(x??"").replaceAll('"','""')+'"').join(","))}const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv.join("\n")],{type:"text/csv"}));a.download="Punjab_Enrollment_Progress.csv";a.click()}
+async function load(){const r=await fetch("data/live-data.json?"+Date.now());if(!r.ok)throw Error("No live dataset");const j=await r.json();DATA=j.rows||j;document.getElementById("updated").textContent="● SIS Data Updated: "+new Date(j.updated_at||Date.now()).toLocaleString("en-GB",{timeZone:"Asia/Karachi",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});setOptions("district",DATA.map(r=>r.District),"All Districts");refreshFilters();render()}
+load().catch(e=>{document.getElementById("updated").textContent="● Live SIS dataset not published yet";console.error(e)});
+</script></body></html>
