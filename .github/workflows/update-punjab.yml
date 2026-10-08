@@ -1,0 +1,47 @@
+name: Update Punjab Enrollment Dashboard
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * *"
+      timezone: "Asia/Karachi"
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: punjab-enrollment
+  cancel-in-progress: true
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - name: Install dependencies
+        run: python -m pip install --upgrade requests beautifulsoup4
+      - name: Fetch SIS daily enrollment
+        run: python update_punjab_enrollment.py
+      - name: Validate output
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open("data/live-data.json",encoding="utf-8"))
+          if d["school_count"] < 38000: raise SystemExit(f"Unexpected school count: {d['school_count']}")
+          print("Validated",d["school_count"],"schools")
+          PY
+      - name: Commit live data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/live-data.json
+          git diff --cached --quiet || (git commit -m "Update Punjab SIS enrollment" && git push)
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: {path: "."}
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
