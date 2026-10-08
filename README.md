@@ -1,24 +1,21 @@
-# District Enrollment Progress
+# Punjab Enrollment Progress Dashboard
 
-District-level Punjab enrollment progress dashboard using the live SIS PESRP gender-summary endpoint and the supplied district baseline/target workbook.
+Punjab-wide school-level enrollment dashboard based on the supplied master CSV.
 
-## Automatic update
-GitHub Actions runs daily at **08:00 Pakistan time (03:00 UTC)** and can also be started manually from **Actions → Update District Enrollment Dashboard → Run workflow**.
+## Data rules
+- Baseline values remain fixed from `data/master.csv`.
+- 2026 male/female target increments remain fixed from `data/master.csv`.
+- Male Current, Female Current and Total Current are fetched daily from SIS.
+- Progress % = Total Current / (Male Target 2026 + Female Target 2026) × 100.
+- The updater uses the same SIS session/CSRF and hierarchy endpoints used by the existing Okara collector.
+- If any school fails, the run stops and the previous live dataset remains published.
 
-Each run:
-1. Creates a fresh SIS session and CSRF token.
-2. Queries the SIS district enrollment endpoint for all 40 districts.
-3. Reads the district baseline/target CSV.
-4. Calculates current enrollment, increase, progress and target attainment.
-5. Writes `data/district_progress.json`.
-6. Commits the refreshed JSON and deploys the site to GitHub Pages.
+## Required master file
+Upload the supplied CSV as `data/master.csv`. Its expected columns include:
+`District, Tehsil, Markaz, EMIS, School Name, Male Baseline, Female Baseline, 2026 Male target , 2026 female target`.
 
-No SIS session cookies or CSRF tokens are stored in the repository.
+## GitHub Pages
+After `data/master.csv` is present, run **Actions → Update Punjab Enrollment Dashboard** once. The same workflow then runs daily at 08:00 Pakistan time.
 
-## Source
-SIS endpoint: `https://sis.pesrp.edu.pk/dashboard_revamp/get_gender_summary_pie`
-
-The district IDs used by the updater follow the 40-district category order supplied from the live SIS response.
-
-
-Last updater fix: district names are matched from the SIS live district summary response rather than numeric district IDs.
+## Dashboard
+Filters: District, Wing, Tehsil, Markaz, School/EMIS search.
