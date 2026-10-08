@@ -30,7 +30,7 @@ jobs:
           python - <<'PY'
           import json
           d=json.load(open("data/live-data.json",encoding="utf-8"))
-          if d["school_count"] < 38000: raise SystemExit(f"Unexpected school count: {d['school_count']}")
+          if d["school_count"] != 38134: raise SystemExit(f"Unexpected school count: {d['school_count']}")
           print("Validated",d["school_count"],"schools")
           PY
       - name: Commit live data
