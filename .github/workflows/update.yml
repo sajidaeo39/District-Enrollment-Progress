@@ -1,63 +1,10 @@
-name: Update District Enrollment Dashboard
-
+name: Legacy District Enrollment Update (manual only)
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "10 3 * * *"
-      timezone: "Asia/Karachi"
-
 permissions:
-  contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: district-enrollment
-  cancel-in-progress: true
-
+  contents: read
 jobs:
-  update:
+  disabled:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install dependencies
-        run: python -m pip install --upgrade requests
-      - name: Fetch live SIS enrollment
-        run: python update_district_progress.py
-      - name: Validate generated data
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          p=Path("data/district_progress.json")
-          if not p.exists(): raise SystemExit("district_progress.json was not generated")
-          d=json.loads(p.read_text())
-          if d.get("district_count") != 40 or len(d.get("districts",[])) != 40:
-              raise SystemExit(f"Invalid district count: {d.get('district_count')}")
-          print("Validated 40 district rows.")
-          PY
-      - name: Commit updated data
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/district_progress.json
-          if git diff --cached --quiet; then echo "No data changes."; else git commit -m "Update district enrollment data"; git push; fi
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "."
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - run: echo "Use the scheduled Update Punjab District Enrollment Dashboard workflow for fresh data and Pages deployment."
