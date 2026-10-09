@@ -71,7 +71,7 @@ function render(){
   $('rows').innerHTML=rs.map((r,i)=>'<tr><td>'+(i+1)+'</td><td class="name">'+esc(r.name)+'</td><td>'+n(r.baseline)+'</td><td>'+n(r.target)+'</td><td>'+n(r.expected)+'</td><td><b>'+n(r.current)+'</b></td><td class="'+(r.remaining<=0?'good':'bad')+'">'+n(r.remaining)+'</td><td>'+r.progress_pct.toFixed(1)+'%</td></tr>').join('')||'<tr><td colspan="8" style="text-align:center;padding:24px">No records match the selected filters.</td></tr>';
 }
 async function load(){
-  const r=await fetch('data/punjab_schools.json?build=20261009c',{cache:'no-store'});
+  const r=await fetch('data/punjab_schools.json?build=20261009e',{cache:'no-store'});
   if(!r.ok)throw Error('School data failed to load (HTTP '+r.status+'). Refresh the page and retry.');
   const data=await r.json();schools=data.schools||[];meta=data;
   if(!schools.length)throw Error('School data file loaded but contains no school records.');
@@ -83,20 +83,21 @@ async function load(){
   $('stamp').textContent='Master data updated: '+(isNaN(t)?'date unavailable':t.toLocaleString('en-GB',{timeZone:'Asia/Karachi',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true})+' PKT')+' · '+n(schools.length)+' school records';
   render();
 }
-function refreshHierarchy(changed){
+function refreshHierarchy(){
   const all=schools;
-  const d=$('district').value,t=$('tehsil').value;
-  if(changed==='district'){
-    fillSelect('tehsil',all.filter(s=>!d||s.district===d).map(s=>s.tehsil),'All Tehsils');
-    fillSelect('markaz',all.filter(s=>(!d||s.district===d)&&(!$('tehsil').value||s.tehsil===$('tehsil').value)).map(s=>s.markaz),'All Markazs');
-  } else if(changed==='tehsil'){
-    fillSelect('markaz',all.filter(s=>(!d||s.district===d)&&(!t||s.tehsil===t)).map(s=>s.markaz),'All Markazs');
-  }
+  const d=$('district').value;
+  const t=$('tehsil').value;
+  const m=$('markaz').value;
+  // Rebuild each dependent list from the upstream selections. fillSelect
+  // clears stale values that no longer exist in the available options.
+  fillSelect('tehsil',all.filter(s=>!d||s.district===d).map(s=>s.tehsil),'All Tehsils');
+  const validTehsil=$('tehsil').value;
+  fillSelect('markaz',all.filter(s=>(!d||s.district===d)&&(!validTehsil||s.tehsil===validTehsil)).map(s=>s.markaz),'All Markazs');
   render();
 }
 ['level','wing'].forEach(id=>$(id).addEventListener('change',render));
-$('district').addEventListener('change',()=>refreshHierarchy('district'));
-$('tehsil').addEventListener('change',()=>refreshHierarchy('tehsil'));
+$('district').addEventListener('change',refreshHierarchy);
+$('tehsil').addEventListener('change',refreshHierarchy);
 $('markaz').addEventListener('change',render);
 $('search').addEventListener('input',render);
 $('reset').addEventListener('click',()=>{
