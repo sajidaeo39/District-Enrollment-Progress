@@ -77,8 +77,19 @@ def main():
         options=dict(wings=sorted({s["wing"] for s in schools}),districts=sorted({s["district"] for s in schools if s["district"]}),
             tehsils=sorted({s["tehsil"] for s in schools if s["tehsil"]}),markazs=sorted({s["markaz"] for s in schools if s["markaz"]})),
         summary=report)
-    SUMMARY.write_text(json.dumps(meta,separators=(",",":"),ensure_ascii=False),encoding="utf-8")
+    payload=json.dumps(meta,separators=(",",":"),ensure_ascii=False).replace("<","\\u003c").replace(">","\\u003e").replace("&","\\u0026")
+    SUMMARY.write_text(payload,encoding="utf-8")
     SCHOOLS.write_text(json.dumps(dict(updated_at=stamp,source="data/master.csv snapshot",schools=schools),separators=(",",":"),ensure_ascii=False),encoding="utf-8")
+    # Embed the summary in index.html so dashboard cards still render if static JSON fetch is cached/blocked.
+    page=ROOT/"index.html"
+    if page.exists():
+        html=page.read_text(encoding="utf-8")
+        marker="/*SUMMARY_DATA_START*/window.__PUNJAB_SUMMARY__=null;/*SUMMARY_DATA_END*/"
+        replacement="/*SUMMARY_DATA_START*/window.__PUNJAB_SUMMARY__="+payload+";/*SUMMARY_DATA_END*/"
+        if marker in html:
+            page.write_text(html.replace(marker,replacement,1),encoding="utf-8")
+        elif "window.__PUNJAB_SUMMARY__=" not in html:
+            raise SystemExit("Cannot embed summary: index.html marker is missing")
     print("SUCCESS: built",len(schools),"schools and",len(report),"Punjab/Wing/District/Tehsil/Markaz summary rows from master.csv",flush=True)
 
 if __name__=="__main__": main()
