@@ -110,6 +110,19 @@ def main():
     if missing:
         raise RuntimeError("Districts missing from target CSV: " + ", ".join(missing))
 
+    # Sum 2026 gender targets from the supplied school-level master file.
+    master_path = ROOT / "data" / "master.csv"
+    gender_targets = {name: {"target_boys_2026": 0, "target_girls_2026": 0} for name in DISTRICTS}
+    with master_path.open(newline="", encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f):
+            district = row.get("District", "").strip()
+            if district not in gender_targets:
+                continue
+            boys = re.sub(r"[^0-9-]", "", str(row.get("2026 Male target ", "0"))) or "0"
+            girls = re.sub(r"[^0-9-]", "", str(row.get("2026 female target", "0"))) or "0"
+            gender_targets[district]["target_boys_2026"] += int(boys)
+            gender_targets[district]["target_girls_2026"] += int(girls)
+
     # Fetch 8 district aggregates concurrently instead of querying thousands of schools.
     live = {}
     errors = []
@@ -148,6 +161,8 @@ def main():
             "male": live[district]["male"],
             "female": live[district]["female"],
             "other": live[district]["other"],
+            "target_boys_2026": gender_targets[district]["target_boys_2026"],
+            "target_girls_2026": gender_targets[district]["target_girls_2026"],
             "live_available": True,
             "increase": actual_increase,
             "remaining": max(expected - current, 0),
