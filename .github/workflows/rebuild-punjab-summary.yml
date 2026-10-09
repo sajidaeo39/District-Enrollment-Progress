@@ -1,0 +1,97 @@
+name: Rebuild Punjab District Summary
+on:
+  workflow_dispatch:
+  schedule:
+    # 08:20 Pakistan time (03:20 UTC), after the district SIS collector's 08:00 PKT run
+    - cron: "20 3 * * *"
+permissions:
+  contents: write
+jobs:
+  rebuild-summary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build Punjab and district summary JSON
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          src = Path("data/district_progress.json")
+          if not src.exists() or src.stat().st_size == 0:
+              raise SystemExit("data/district_progress.json is missing or empty; refusing to publish empty dashboard data")
+          data = json.loads(src.read_text(encoding="utf-8"))
+          districts = []
+          for row in data.get("districts", []):
+              baseline = int(row.get("baseline") or 0)
+              increment = int(row.get("new_target") or 0)
+              expected = int(row.get("target") or (baseline + increment))
+              current = int(row.get("current") or 0)
+              remaining = expected - current
+              districts.append({
+                  "level": "District",
+                  "name": row.get("district", ""),
+                  "district": row.get("district", ""),
+                  "tehsil": "",
+                  "markaz": "",
+                  "wing": "",
+                  "school_count": 0,
+                  "baseline": baseline,
+                  "target": increment,
+                  "expected": expected,
+                  "current": current,
+                  "remaining": remaining,
+                  "progress_pct": (remaining / increment * 100) if increment else 0,
+                  "live_available": bool(row.get("live_available", False)),
+                  "fetch_error": row.get("fetch_error", "")
+              })
+          if len(districts) != 40:
+              raise SystemExit(f"Expected 40 district rows, found {len(districts)}; refusing to publish incomplete summary")
+          def total(key):
+              return sum(int(r.get(key) or 0) for r in districts)
+          target = total("target")
+          summary = [{
+              "level": "Punjab",
+              "name": "Punjab Total",
+              "district": "",
+              "tehsil": "",
+              "markaz": "",
+              "wing": "",
+              "school_count": 0,
+              "baseline": total("baseline"),
+              "target": target,
+              "expected": total("expected"),
+              "current": total("current"),
+              "remaining": total("remaining"),
+              "progress_pct": (total("remaining") / target * 100) if target else 0
+          }, *districts]
+          output = {
+              "updated_at": data.get("updated_at"),
+              "source": data.get("source", ""),
+              "district_count": len(districts),
+              "live_school_count": 0,
+              "failed_school_count": 0,
+              "options": {
+                  "wings": [],
+                  "districts": [r["district"] for r in districts],
+                  "tehsils": [],
+                  "markazs": []
+              },
+              "summary": summary
+          }
+          path = Path("data/punjab_summary.json")
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+          print(f"Built {len(summary)} summary rows from {output['district_count']} district records, source updated at {output['updated_at']}")
+          PY
+      - name: Commit updated summary if changed
+        run: |
+          if git diff --quiet -- data/punjab_summary.json; then
+            echo "Summary unchanged; no commit required."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/punjab_summary.json
+            git commit -m "Refresh Punjab district summary from SIS report"
+            git push
+          fi
