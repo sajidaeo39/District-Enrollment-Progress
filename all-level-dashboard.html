@@ -67,6 +67,44 @@ button,select,input{touch-action:manipulation}
  .filters #reset{flex-basis:68px;width:68px;min-width:68px}
  .filters #download,.filters #pdf{min-width:96px;padding:0 7px;font-size:11px}
 }
+
+/* Mobile-first data visibility: reduce header and control stack height */
+@media(max-width:650px){
+ header{padding:5px}
+ h1{font-size:17px!important;padding:7px 6px!important;line-height:1.15}
+ .headrow{gap:5px!important}
+ .byline{margin-top:4px;padding:5px 7px;font-size:10px;line-height:1.25}
+ .stamp{margin-top:3px;font-size:9px;line-height:1.25}
+ #dashboardDisclaimer{margin:4px auto 0!important;padding:4px 6px!important;font-size:9px!important;line-height:1.25!important}
+ .channel{min-height:34px!important;padding:5px 8px!important;gap:6px!important}
+ .yticon{flex-basis:27px!important;height:22px!important;font-size:12px!important}
+ .channel strong{font-size:10px!important}
+ .channel small{display:none!important}
+ main{padding:5px!important}
+ .cards{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:3px!important;margin-bottom:5px!important}
+ .card{min-height:43px!important;padding:4px 1px!important;border-radius:6px!important}
+ .label{font-size:7px!important;line-height:1.05!important;letter-spacing:-.15px}
+ .value{font-size:clamp(10px,2.7vw,13px)!important;line-height:1.05!important;margin-top:3px!important}
+ .filters{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:4px!important;padding:5px!important;margin-bottom:5px!important}
+ .filters #level,.filters #wing,.filters #district,.filters #tehsil,.filters #markaz{grid-column:auto!important;min-width:0!important;width:100%!important;height:33px!important;font-size:8px!important;padding:0 1px!important}
+ .filters #search{grid-column:1/5!important;width:100%!important;min-width:0!important;height:34px!important;font-size:11px!important;padding:0 6px!important}
+ .filters #reset{grid-column:5/6!important;width:100%!important;min-width:0!important;height:34px!important;font-size:10px!important;padding:0 2px!important}
+ .filters #download{grid-column:1/4!important;width:100%!important;min-width:0!important;height:34px!important;font-size:9px!important;padding:0 2px!important;white-space:normal!important;line-height:1.05!important}
+ .filters #pdf{grid-column:4/6!important;width:100%!important;min-width:0!important;height:34px!important;font-size:9px!important;padding:0 2px!important;white-space:normal!important;line-height:1.05!important}
+ .tablebox{max-height:none!important;min-height:0!important;border-radius:7px!important}
+ table{min-width:900px!important;font-size:11px!important}
+ th,td{padding:7px 6px!important}
+}
+@media(max-width:380px){
+ h1{font-size:15px!important}
+ .byline{font-size:9px!important}
+ .card{min-height:40px!important}
+ .label{font-size:6.5px!important}
+ .value{font-size:10px!important}
+ .filters{gap:3px!important;padding:4px!important}
+ .filters #level,.filters #wing,.filters #district,.filters #tehsil,.filters #markaz{font-size:7px!important}
+ .filters #search{font-size:10px!important}
+}
 /* Final mobile layout override: compact KPI strip and one-line filter/download rows */
 @media(max-width:650px){
  .cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:8px}
