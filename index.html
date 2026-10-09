@@ -1,75 +1,78 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Punjab Enrollment Progress Dashboard</title>
+<title>Punjab District Enrollment Progress</title>
 <style>
-:root{--blue:#0b5ed7;--navy:#17345f;--bg:#f4f7fb;--line:#dfe5ee;--muted:#667085;--green:#16803c;--red:#c62828}
-*{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:#fff;color:#172033}
-header{padding:8px 20px;border-bottom:1px solid #e2eaf2;box-shadow:0 2px 8px rgba(23,52,77,.05);text-align:center}
-h1{margin:0;padding:8px;background:#f4f8fc;border:1px solid #e1eaf3;border-radius:9px;color:#17344d;font-size:22px}.sub{font-size:11px;color:#617286;margin:4px}.updated{display:inline-block;font-size:10px;padding:3px 9px;border:1px solid #dbe7f1;border-radius:99px;color:#52657a;background:#f7fafc}
-main{padding:10px 20px}.cards{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-bottom:9px}.card{border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center;min-height:66px;background:#f8fafc}.label{font-size:9px;color:var(--muted);font-weight:650}.value{font-size:17px;font-weight:750;color:#315b7d;margin-top:4px}
-.filters{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;border:1px solid var(--line);border-radius:10px;padding:9px;margin-bottom:9px}.filters select,.filters input,.btn{height:37px;border:1px solid #cbd5e1;border-radius:7px;background:white;padding:0 9px;font:12px "Segoe UI";min-width:0}.btn{background:var(--blue);color:white;border:0;cursor:pointer;font-weight:650}.btn.secondary{background:#0f766e}.btn.pdf{background:#b42318}
-.table-wrap{border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:calc(100vh - 270px)}table{border-collapse:collapse;width:100%;font-size:10px;min-width:1120px}th,td{padding:7px 5px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}th{position:sticky;top:0;background:#edf4fd;color:var(--navy);z-index:2}td.name{text-align:left;font-weight:650}.good{color:var(--green);font-weight:750}.bad{color:var(--red);font-weight:750}.total{background:#edf4fd;font-weight:800;color:var(--navy)}
-.progress{height:6px;width:70px;background:#e6ebf0;border-radius:8px;display:inline-block;overflow:hidden;vertical-align:middle}.bar{height:100%;background:#16803c}
-footer{text-align:center;border-top:1px solid #e2eaf2;padding:10px;color:#617286;font-size:10px}
-@media(max-width:1000px){.cards{grid-template-columns:repeat(4,1fr)}.filters{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){main{padding:7px}.cards{grid-template-columns:repeat(4,1fr);gap:5px}.card{min-height:55px;padding:5px 2px}.label{font-size:7px}.value{font-size:12px}.filters{grid-template-columns:1fr 1fr;padding:7px}.filters input{grid-column:1/-1}h1{font-size:17px}}
+:root{--navy:#17345f;--blue:#1769aa;--teal:#0f766e;--bg:#f4f7fb;--line:#dfe5ee;--muted:#667085;--green:#16803c;--red:#c62828}
+*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:#172033}
+header{padding:14px 18px 10px;background:#fff;border-bottom:1px solid var(--line);text-align:center}
+h1{margin:0;padding:10px;background:#f4f8fc;border:1px solid #e1eaf3;border-radius:10px;color:var(--navy);font-size:clamp(18px,2.5vw,25px)}
+.sub{font-size:12px;color:#617286;margin:6px}.updated{display:inline-block;font-size:11px;padding:5px 11px;border:1px solid #dbe7f1;border-radius:99px;color:#52657a;background:#f7fafc}
+main{max-width:1600px;margin:auto;padding:12px 16px}.cards{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.card{border:1px solid var(--line);border-radius:10px;padding:10px 6px;text-align:center;min-height:76px;background:#fff;box-shadow:0 1px 3px #17345f0a}
+.label{font-size:10px;color:var(--muted);font-weight:700}.value{font-size:clamp(14px,1.6vw,20px);font-weight:800;color:#315b7d;margin-top:7px;overflow-wrap:anywhere}
+.controls{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}
+input,select,.btn{height:38px;border:1px solid #cbd5e1;border-radius:7px;background:white;padding:0 11px;font:13px Segoe UI,Arial;min-width:140px}
+input{min-width:220px}.btn{background:var(--blue);color:white;border:0;cursor:pointer;font-weight:700}.btn.csv{background:var(--teal)}
+.note{font-size:11px;color:var(--muted);text-align:center;margin:8px}
+.table-wrap{border:1px solid var(--line);border-radius:10px;overflow:auto;background:white}
+table{border-collapse:collapse;width:100%;font-size:12px;min-width:900px}th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th{position:sticky;top:0;background:#edf4fd;color:var(--navy);z-index:2;font-weight:800}td:first-child,th:first-child,td:nth-child(2),th:nth-child(2){text-align:left}.district{font-weight:750;color:#17345f}.good{color:var(--green);font-weight:800}.bad{color:var(--red);font-weight:800}.total{background:#edf4fd;font-weight:800;color:var(--navy)}
+.progress{height:7px;width:68px;background:#e6ebf0;border-radius:8px;display:inline-block;overflow:hidden;vertical-align:middle;margin-right:5px}.bar{height:100%;background:var(--green)}
+footer{text-align:center;padding:12px;color:#617286;font-size:11px}
+@media(max-width:1100px){.cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:600px){header{padding:8px}.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}main{padding:8px}.card{min-height:63px;padding:8px 3px}.label{font-size:9px}.value{font-size:16px}.controls{gap:6px;padding:8px}input,select,.btn{min-width:0;flex:1 1 42%;font-size:12px}input{flex-basis:100%}table{font-size:11px}th,td{padding:8px 6px}}
 </style></head>
 <body>
-<header><h1>Punjab Enrollment Progress Dashboard</h1><div class="sub">District → Wing → Tehsil → Markaz → School | 2026 Enrollment Targets</div><div id="updated" class="updated">● SIS Data Updated: Loading…</div></header>
+<header><h1>Punjab District Enrollment Progress Dashboard</h1><div class="sub">All Punjab districts · Live SIS enrollment · 2026 enrollment targets</div><div id="updated" class="updated">Loading latest SIS report…</div></header>
 <main>
-<div class="cards">
-<div class="card"><div class="label">Schools</div><div id="cSchools" class="value">—</div></div>
-<div class="card"><div class="label">Baseline</div><div id="cBase" class="value">—</div></div>
-<div class="card"><div class="label">2026 Target</div><div id="cTarget" class="value">—</div></div>
-<div class="card"><div class="label">Male Current</div><div id="cMale" class="value">—</div></div>
-<div class="card"><div class="label">Female Current</div><div id="cFemale" class="value">—</div></div>
-<div class="card"><div class="label">Total Current</div><div id="cCurrent" class="value">—</div></div>
-<div class="card"><div class="label">Remaining</div><div id="cRemain" class="value">—</div></div>
-<div class="card"><div class="label">Progress</div><div id="cProgress" class="value">—</div></div>
-</div>
-<div class="filters">
-<select id="district"><option value="">All Districts</option></select><select id="wing"><option value="">All Wings</option></select>
-<select id="tehsil"><option value="">All Tehsils</option></select><select id="markaz"><option value="">All Markaz</option></select>
-<input id="search" placeholder="Search EMIS / school name"><button class="btn" onclick="resetFilters()">Reset</button><button class="btn secondary" onclick="downloadExcel()">Download Excel</button><button class="btn pdf" onclick="window.print()">Print / PDF</button>
-</div>
+<section class="cards">
+<div class="card"><div class="label">DISTRICTS</div><div class="value" id="cDistricts">—</div></div>
+<div class="card"><div class="label">TOTAL TARGET</div><div class="value" id="cTarget">—</div></div>
+<div class="card"><div class="label">CURRENT ENROLLMENT</div><div class="value" id="cCurrent">—</div></div>
+<div class="card"><div class="label">BOYS</div><div class="value" id="cMale">—</div></div>
+<div class="card"><div class="label">GIRLS</div><div class="value" id="cFemale">—</div></div>
+<div class="card"><div class="label">TARGET REMAINING</div><div class="value" id="cRemaining">—</div></div>
+<div class="card"><div class="label">TARGET ACHIEVEMENT</div><div class="value" id="cAchievement">—</div></div>
+<div class="card"><div class="label">BASELINE</div><div class="value" id="cBaseline">—</div></div>
+</section>
+<section class="controls">
+<select id="district"><option value="">All Districts</option></select>
+<input id="search" type="search" placeholder="Search district name…">
+<button class="btn" id="reset">Reset filters</button>
+<button class="btn csv" id="download">Download Excel (CSV)</button>
+</section>
+<div class="note">Green = target achieved · Red = target not achieved · Report data is fetched from SIS automatically.</div>
 <div class="table-wrap"><table><thead><tr>
-<th>S.No.</th><th>District</th><th>Wing</th><th>Tehsil</th><th>Markaz</th><th>EMIS</th><th>School</th>
-<th>Male Baseline</th><th>Female Baseline</th><th>Male Target 2026</th><th>Female Target 2026</th>
-<th>Male Current</th><th>Female Current</th><th>Total Current</th><th>Remaining</th><th>Progress %</th>
-</tr></thead><tbody id="rows"></tbody></table></div>
-</main><footer>Punjab Enrollment Dashboard | SIS live current enrollment + fixed master baseline/targets</footer>
+<th>#</th><th>District</th><th>Baseline</th><th>New Target</th><th>Total Target</th><th>Boys</th><th>Girls</th><th>Other</th><th>Current Total</th><th>Remaining</th><th>Target Achievement</th><th>Enrollment Growth Progress</th>
+</tr></thead><tbody id="rows"><tr><td colspan="12" style="text-align:center;padding:28px">Loading district enrollment data…</td></tr></tbody></table></div>
+</main><footer>Punjab District Enrollment Dashboard · Dashboard developed by M. Sajid</footer>
 <script>
 let DATA=[];
 const n=v=>Number(v||0).toLocaleString("en-US");
-const val=(r,...keys)=>{for(const k of keys)if(r[k]!==undefined)return Number(r[k]||0);return 0};
-function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"": "&quot;","'":"&#39;"}[m]));}
-function uniq(arr){return [...new Set(arr.filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b)))}
-function setOptions(id,values,first){const e=document.getElementById(id),old=e.value;e.innerHTML='<option value="">'+first+'</option>'+uniq(values).map(v=>'<option>'+esc(v)+'</option>').join('');if(values.includes(old))e.value=old}
-function filtered(){
- const d=district.value,w=wing.value,t=tehsil.value,m=markaz.value,q=search.value.trim().toLowerCase();
- return DATA.filter(r=>(!d||r.District===d)&&(!w||r.Wing===w)&&(!t||r.Tehsil===t)&&(!m||r.Markaz===m)&&(!q||String(r.EMIS).includes(q)||String(r["School Name"]||r.School||"").toLowerCase().includes(q)))
-}
-function refreshFilters(){
- const base=DATA.filter(r=>!district.value||r.District===district.value);
- setOptions("wing",base.map(r=>r.Wing),"All Wings");
- const b2=base.filter(r=>!wing.value||r.Wing===wing.value);setOptions("tehsil",b2.map(r=>r.Tehsil),"All Tehsils");
- const b3=b2.filter(r=>!tehsil.value||r.Tehsil===tehsil.value);setOptions("markaz",b3.map(r=>r.Markaz),"All Markaz");
-}
+const el=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+function filtered(){const d=el("district").value,q=el("search").value.trim().toLowerCase();return DATA.filter(r=>(!d||r.district===d)&&(!q||r.district.toLowerCase().includes(q)))}
 function render(){
- const rows=filtered();let sums={base:0,target:0,male:0,female:0,current:0,remain:0};
- const html=rows.map((r,i)=>{
-   const mb=val(r,"Male Baseline"),fb=val(r,"Female Baseline"),mt=val(r,"Male Target 2026","2026 Male target "),ft=val(r,"Female Target 2026","2026 female target"),mc=val(r,"Male Current"),fc=val(r,"Female Current"),tc=val(r,"Total Current");
-   const target=mt+ft,current=tc||mc+fc,remain=Math.max(target-current,0),progress=target?current/target*100:0;
-   sums.base+=mb+fb;sums.target+=target;sums.male+=mc;sums.female+=fc;sums.current+=current;sums.remain+=remain;
-   return '<tr><td>'+(i+1)+'</td><td>'+esc(r.District)+'</td><td>'+esc(r.Wing)+'</td><td>'+esc(r.Tehsil)+'</td><td>'+esc(r.Markaz)+'</td><td>'+esc(r.EMIS)+'</td><td class="name">'+esc(r["School Name"]||r.School)+'</td><td>'+n(mb)+'</td><td>'+n(fb)+'</td><td>'+n(mt)+'</td><td>'+n(ft)+'</td><td>'+n(mc)+'</td><td>'+n(fc)+'</td><td>'+n(current)+'</td><td>'+n(remain)+'</td><td class="'+(progress>=100?"good":"bad")+'"><span class="progress"><span class="bar" style="width:'+Math.min(progress,100)+'%"></span></span> '+progress.toFixed(1)+'%</td></tr>'
+ const rows=filtered();let sums={baseline:0,newTarget:0,target:0,male:0,female:0,other:0,current:0,remaining:0,increase:0};
+ const body=rows.map((r,i)=>{for(const k of Object.keys(sums)){const source={baseline:"baseline",newTarget:"new_target",target:"target",male:"male",female:"female",other:"other",current:"current",remaining:"remaining",increase:"increase"}[k];sums[k]+=Number(r[source]||0)}
+ const achieve=r.target?100*r.current/r.target:0;const growth=r.progress_pct||0;
+ return '<tr><td>'+(i+1)+'</td><td class="district">'+esc(r.district)+'</td><td>'+n(r.baseline)+'</td><td>'+n(r.new_target)+'</td><td>'+n(r.target)+'</td><td>'+n(r.male)+'</td><td>'+n(r.female)+'</td><td>'+n(r.other)+'</td><td>'+n(r.current)+'</td><td class="'+(r.current>=r.target?'good':'bad')+'">'+n(r.remaining)+'</td><td class="'+(achieve>=100?'good':'bad')+'">'+achieve.toFixed(1)+'%</td><td><span class="progress"><span class="bar" style="display:block;width:'+Math.min(100,growth)+'%"></span></span>'+growth.toFixed(1)+'%</td></tr>'
  }).join("");
- const p=sums.target?sums.current/sums.target*100:0;
- document.getElementById("rows").innerHTML=html+'<tr class="total"><td>—</td><td colspan="6">TOTAL</td><td colspan="2">'+n(sums.base)+'</td><td colspan="2">'+n(sums.target)+'</td><td>'+n(sums.male)+'</td><td>'+n(sums.female)+'</td><td>'+n(sums.current)+'</td><td>'+n(sums.remain)+'</td><td>'+p.toFixed(1)+'%</td></tr>';
- cSchools.textContent=n(rows.length);cBase.textContent=n(sums.base);cTarget.textContent=n(sums.target);cMale.textContent=n(sums.male);cFemale.textContent=n(sums.female);cCurrent.textContent=n(sums.current);cRemain.textContent=n(sums.remain);cProgress.textContent=p.toFixed(1)+"%";
+ const targetAchieve=sums.target?100*sums.current/sums.target:0;
+ el("rows").innerHTML=body+'<tr class="total"><td>—</td><td>TOTAL ('+n(rows.length)+' districts)</td><td>'+n(sums.baseline)+'</td><td>'+n(sums.newTarget)+'</td><td>'+n(sums.target)+'</td><td>'+n(sums.male)+'</td><td>'+n(sums.female)+'</td><td>'+n(sums.other)+'</td><td>'+n(sums.current)+'</td><td>'+n(sums.remaining)+'</td><td>'+targetAchieve.toFixed(1)+'%</td><td>—</td></tr>';
+ el("cDistricts").textContent=n(rows.length);el("cTarget").textContent=n(sums.target);el("cCurrent").textContent=n(sums.current);el("cMale").textContent=n(sums.male);el("cFemale").textContent=n(sums.female);el("cRemaining").textContent=n(sums.remaining);el("cAchievement").textContent=targetAchieve.toFixed(1)+"%";el("cBaseline").textContent=n(sums.baseline);
 }
-function resetFilters(){district.value=wing.value=tehsil.value=markaz.value=search.value="";refreshFilters();render()}
-["district","wing","tehsil","markaz"].forEach(id=>document.getElementById(id).addEventListener("change",()=>{refreshFilters();render()}));search.addEventListener("input",render);
-function downloadExcel(){const rows=filtered();let csv=["District,Wing,Tehsil,Markaz,EMIS,School,Male Baseline,Female Baseline,Male Target 2026,Female Target 2026,Male Current,Female Current,Total Current,Remaining,Progress %"];for(const r of rows){const mb=val(r,"Male Baseline"),fb=val(r,"Female Baseline"),mt=val(r,"Male Target 2026","2026 Male target "),ft=val(r,"Female Target 2026","2026 female target"),mc=val(r,"Male Current"),fc=val(r,"Female Current"),tc=val(r,"Total Current")||mc+fc,t=mt+ft,p=t?tc/t*100:0;csv.push([r.District,r.Wing,r.Tehsil,r.Markaz,r.EMIS,r["School Name"]||r.School,mb,fb,mt,ft,mc,fc,tc,Math.max(t-tc,0),p.toFixed(2)+"%"].map(x=>'"'+String(x??"").replaceAll('"','""')+'"').join(","))}const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv.join("\n")],{type:"text/csv"}));a.download="Punjab_Enrollment_Progress.csv";a.click()}
-async function load(){const r=await fetch("data/live-data.json?"+Date.now());if(!r.ok)throw Error("No live dataset");const j=await r.json();DATA=j.rows||j;document.getElementById("updated").textContent="● SIS Data Updated: "+new Date(j.updated_at||Date.now()).toLocaleString("en-GB",{timeZone:"Asia/Karachi",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});setOptions("district",DATA.map(r=>r.District),"All Districts");refreshFilters();render()}
-load().catch(e=>{document.getElementById("updated").textContent="● Live SIS dataset not published yet";console.error(e)});
+async function load(){
+ const response=await fetch("data/district_progress.json?ts="+Date.now(),{cache:"no-store"});
+ if(!response.ok)throw Error("SIS district data file unavailable (HTTP "+response.status+")");
+ const payload=await response.json();DATA=payload.districts||[];
+ if(DATA.length!==40)throw Error("Expected 40 district records; received "+DATA.length);
+ const stamp=payload.updated_at?new Date(payload.updated_at):new Date();
+ el("updated").textContent="● SIS data updated: "+stamp.toLocaleString("en-GB",{timeZone:"Asia/Karachi",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true})+" PKT";
+ el("district").innerHTML='<option value="">All Districts</option>'+DATA.map(r=>'<option value="'+esc(r.district)+'">'+esc(r.district)+'</option>').join("");
+ render();
+}
+el("district").addEventListener("change",render);el("search").addEventListener("input",render);
+el("reset").addEventListener("click",()=>{el("district").value="";el("search").value="";render()});
+el("download").addEventListener("click",()=>{const rows=filtered();const cols=[["District","district"],["Baseline","baseline"],["New Target","new_target"],["Total Target","target"],["Boys","male"],["Girls","female"],["Other","other"],["Current Total","current"],["Remaining","remaining"],["Target Achievement %","target_progress_pct"],["Enrollment Growth Progress %","progress_pct"]];const csv=[cols.map(c=>c[0]),...rows.map(r=>cols.map(c=>r[c[1]]??""))].map(row=>row.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));a.download="Punjab_District_Enrollment_"+new Date().toISOString().slice(0,10)+".csv";a.click();URL.revokeObjectURL(a.href)});
+load().catch(err=>{el("updated").textContent="● SIS data unavailable: "+err.message;el("rows").innerHTML='<tr><td colspan="12" style="text-align:center;padding:28px;color:#b42318">Latest district data could not be loaded. Please retry after the scheduled workflow completes.</td></tr>';console.error(err)});
 </script></body></html>
