@@ -1,97 +1,144 @@
-name: Rebuild Punjab District Summary
+name: Build Punjab All-Level Enrollment Data
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'data/master.csv'
+      - '.github/workflows/rebuild-punjab-summary.yml'
   schedule:
-    # 08:20 Pakistan time (03:20 UTC), after the district SIS collector's 08:00 PKT run
     - cron: "20 3 * * *"
 permissions:
   contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
 jobs:
-  rebuild-summary:
+  build-data:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Build Punjab and district summary JSON
+      - name: Build Punjab, wing, district, tehsil, markaz and school data
         run: |
           python - <<'PY'
-          import json
+          import csv, json
           from pathlib import Path
-          src = Path("data/district_progress.json")
-          if not src.exists() or src.stat().st_size == 0:
-              raise SystemExit("data/district_progress.json is missing or empty; refusing to publish empty dashboard data")
-          data = json.loads(src.read_text(encoding="utf-8"))
-          districts = []
-          for row in data.get("districts", []):
-              baseline = int(row.get("baseline") or 0)
-              increment = int(row.get("new_target") or 0)
-              expected = int(row.get("target") or (baseline + increment))
-              current = int(row.get("current") or 0)
+          from collections import defaultdict
+          from datetime import datetime, timezone
+
+          candidates = [Path("data/master.csv"), Path("master.csv")]
+          source = next((p for p in candidates if p.exists() and p.stat().st_size > 100), None)
+          if source is None:
+              raise SystemExit("Master CSV missing or empty. Refusing to publish empty dashboard.")
+          with source.open(encoding="utf-8-sig", newline="") as f:
+              reader = csv.DictReader(f)
+              raw = list(reader)
+              headers = {str(h or "").strip().lower(): h for h in (reader.fieldnames or [])}
+          if not raw:
+              raise SystemExit("Master CSV has no school records.")
+          def get(row, *names):
+              for name in names:
+                  key = headers.get(name.strip().lower())
+                  if key is not None:
+                      return str(row.get(key) or "").strip()
+              return ""
+          def number(row, *names):
+              v = get(row, *names).replace(",", "")
+              try: return int(float(v)) if v else 0
+              except ValueError: return 0
+          def pct(remaining, target):
+              return round(remaining / target * 100, 2) if target else None
+
+          schools = []
+          for row in raw:
+              district = get(row, "District")
+              tehsil = get(row, "Tehsil")
+              markaz = get(row, "Markaz")
+              emis = get(row, "EMIS")
+              school = get(row, "School Name")
+              baseline = number(row, "Total Baseline")
+              current = number(row, "Total Current")
+              target = number(row, "Total Target 2026", "Total Target")
+              expected = baseline + target
               remaining = expected - current
-              districts.append({
-                  "level": "District",
-                  "name": row.get("district", ""),
-                  "district": row.get("district", ""),
-                  "tehsil": "",
-                  "markaz": "",
-                  "wing": "",
-                  "school_count": 0,
-                  "baseline": baseline,
-                  "target": increment,
-                  "expected": expected,
-                  "current": current,
-                  "remaining": remaining,
-                  "progress_pct": (remaining / increment * 100) if increment else 0,
-                  "live_available": bool(row.get("live_available", False)),
-                  "fetch_error": row.get("fetch_error", "")
+              male_base = number(row, "Male Baseline")
+              male_current = number(row, "Male Current")
+              male_target = number(row, "2026 Male target", "Male Target")
+              female_base = number(row, "Female Baseline")
+              female_current = number(row, "Female Current")
+              female_target = number(row, "2026 female target", "Female Target")
+              # Secondary wing is tagged only where the source school/markaz explicitly identifies it.
+              name_text = (school + " " + markaz).upper()
+              wing = "Secondary Wing" if "SECONDARY" in name_text else ("Female" if "FEMALE" in name_text else "Male" if "MALE" in name_text else "Unspecified")
+              schools.append({
+                "level":"School","name":school,"school":school,"district":district,"tehsil":tehsil,"markaz":markaz,
+                "emis":emis,"wing":wing,"baseline":baseline,"target":target,"expected":expected,"current":current,
+                "remaining":remaining,"progress_pct":pct(remaining,target),"male_baseline":male_base,
+                "male_current":male_current,"male_target":male_target,"female_baseline":female_base,
+                "female_current":female_current,"female_target":female_target
               })
-          if len(districts) != 40:
-              raise SystemExit(f"Expected 40 district rows, found {len(districts)}; refusing to publish incomplete summary")
-          def total(key):
-              return sum(int(r.get(key) or 0) for r in districts)
-          target = total("target")
-          summary = [{
-              "level": "Punjab",
-              "name": "Punjab Total",
-              "district": "",
-              "tehsil": "",
-              "markaz": "",
-              "wing": "",
-              "school_count": 0,
-              "baseline": total("baseline"),
-              "target": target,
-              "expected": total("expected"),
-              "current": total("current"),
-              "remaining": total("remaining"),
-              "progress_pct": (total("remaining") / target * 100) if target else 0
-          }, *districts]
-          output = {
-              "updated_at": data.get("updated_at"),
-              "source": data.get("source", ""),
-              "district_count": len(districts),
-              "live_school_count": 0,
-              "failed_school_count": 0,
-              "options": {
-                  "wings": [],
-                  "districts": [r["district"] for r in districts],
-                  "tehsils": [],
-                  "markazs": []
-              },
-              "summary": summary
-          }
-          path = Path("data/punjab_summary.json")
-          path.parent.mkdir(parents=True, exist_ok=True)
-          path.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-          print(f"Built {len(summary)} summary rows from {output['district_count']} district records, source updated at {output['updated_at']}")
+
+          def summarize(items, level, name, wing="All"):
+              baseline = sum(x["baseline"] for x in items)
+              target = sum(x["target"] for x in items)
+              current = sum(x["current"] for x in items)
+              expected = baseline + target
+              remaining = expected - current
+              return {"level":level,"name":name,"district":name if level=="District" else (items[0]["district"] if items else ""),
+                "tehsil":name if level=="Tehsil" else (items[0]["tehsil"] if items else ""),
+                "markaz":name if level=="Markaz" else (items[0]["markaz"] if items else ""),
+                "wing":wing,"school_count":len(items),"baseline":baseline,"target":target,
+                "expected":expected,"current":current,"remaining":remaining,"progress_pct":pct(remaining,target)}
+
+          summary = [summarize(schools,"Punjab","Punjab Total")]
+          for level, key in [("District","district"),("Tehsil","tehsil"),("Markaz","markaz")]:
+              groups = defaultdict(list)
+              for s in schools:
+                  if s[key]: groups[s[key]].append(s)
+              for name, items in sorted(groups.items()):
+                  summary.append(summarize(items,level,name))
+          for wing in ("Male","Female","Secondary Wing"):
+              subset = []
+              for s in schools:
+                  if wing == "Male":
+                      baseline,current,target = s["male_baseline"],s["male_current"],s["male_target"]
+                  elif wing == "Female":
+                      baseline,current,target = s["female_baseline"],s["female_current"],s["female_target"]
+                  else:
+                      # Include only records explicitly identified as secondary wing in source names.
+                      if s["wing"] != "Secondary Wing": continue
+                      baseline,current,target = s["baseline"],s["current"],s["target"]
+                  expected = baseline + target
+                  remaining = expected - current
+                  subset.append({**s,"baseline":baseline,"target":target,"expected":expected,"current":current,"remaining":remaining,"progress_pct":pct(remaining,target)})
+              summary.append(summarize(subset,"Wing",wing,wing))
+
+          out = Path("data")
+          out.mkdir(exist_ok=True)
+          stamp = datetime.now(timezone.utc).isoformat()
+          (out/"punjab_summary.json").write_text(json.dumps({
+            "updated_at":stamp,"source":source.as_posix(),"school_count":len(schools),
+            "district_count":len({s["district"] for s in schools if s["district"]}),
+            "tehsil_count":len({s["tehsil"] for s in schools if s["tehsil"]}),
+            "markaz_count":len({s["markaz"] for s in schools if s["markaz"]}),
+            "options":{"wings":["Male","Female","Secondary Wing"],
+              "districts":sorted({s["district"] for s in schools if s["district"]}),
+              "tehsils":sorted({s["tehsil"] for s in schools if s["tehsil"]),
+              "markazs":sorted({s["markaz"] for s in schools if s["markaz"]})},
+            "summary":summary},ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          (out/"punjab_schools.json").write_text(json.dumps({"updated_at":stamp,"school_count":len(schools),"schools":schools},ensure_ascii=False,separators=(",",":"))+"\n",encoding="utf-8")
+          print(f"Built {len(schools)} school rows, {len(summary)} summary rows; districts={len({s['district'] for s in schools})}, tehsils={len({s['tehsil'] for s in schools})}, markaz={len({s['markaz'] for s in schools})}")
           PY
-      - name: Commit updated summary if changed
+      - name: Publish generated JSON files
         run: |
-          if git diff --quiet -- data/punjab_summary.json; then
-            echo "Summary unchanged; no commit required."
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/punjab_summary.json data/punjab_schools.json
+          if git diff --cached --quiet; then
+            echo "Generated data unchanged."
           else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add data/punjab_summary.json
-            git commit -m "Refresh Punjab district summary from SIS report"
+            git commit -m "Build all-level Punjab enrollment dashboard data"
             git push
           fi
