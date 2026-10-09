@@ -40,7 +40,7 @@ footer{text-align:center;padding:12px;color:#617286;font-size:11px}
 <button class="btn" id="reset">Reset filters</button>
 <button class="btn csv" id="download">Download Excel (CSV)</button>
 </section>
-<div class="note">Green = target achieved · Red = target not achieved · Report data is fetched from SIS automatically.</div>
+<div class="note">Default order: Highest to Lowest by current enrollment · Green = target achieved · Red = target not achieved · Report data is fetched from SIS automatically.</div>
 <div class="table-wrap"><table><thead><tr>
 <th>#</th><th>District</th><th>Baseline</th><th>New Target</th><th>Total Target</th><th>Boys</th><th>Girls</th><th>Other</th><th>Current Total</th><th>Remaining</th><th>Target Achievement</th><th>Enrollment Growth Progress</th>
 </tr></thead><tbody id="rows"><tr><td colspan="12" style="text-align:center;padding:28px">Loading district enrollment data…</td></tr></tbody></table></div>
@@ -64,7 +64,7 @@ function render(){
 async function load(){
  const response=await fetch("data/district_progress.json?ts="+Date.now(),{cache:"no-store"});
  if(!response.ok)throw Error("SIS district data file unavailable (HTTP "+response.status+")");
- const payload=await response.json();DATA=payload.districts||[];
+ const payload=await response.json();DATA=(payload.districts||[]).slice().sort((a,b)=>Number(b.current||0)-Number(a.current||0));
  if(DATA.length!==40)throw Error("Expected 40 district records; received "+DATA.length);
  const stamp=payload.updated_at?new Date(payload.updated_at):new Date();
  el("updated").textContent="● SIS data updated: "+stamp.toLocaleString("en-GB",{timeZone:"Asia/Karachi",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true})+" PKT";
