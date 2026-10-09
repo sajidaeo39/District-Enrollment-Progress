@@ -127,7 +127,7 @@ function rowsNow(){
   const level=$('level').value,wing=$('wing').value,items=filteredSchools();
   if(level==='School') return items.map(s=>makeRow([s],'School',(s.school||'Unnamed School')+(s.emis?' · '+s.emis:''),wing)).sort((a,b)=>b.progress_pct-a.progress_pct);
   if(level==='Wing'){
-    const wings=wing?[wing]:['Male','Female','Secondary Wing'];
+    const wings=wing?[wing]:['Male Elementary Wing','Female Elementary Wing','Secondary Wing'];
     return wings.map(w=>makeRow(items,'Wing',w,w)).filter(r=>r.school_count>0).sort((a,b)=>b.progress_pct-a.progress_pct);
   }
   const groups=new Map();
@@ -165,9 +165,9 @@ function render(){
 async function load(){
   const r=await fetch('data/punjab_schools.json?build=20261009f',{cache:'no-store'});
   if(!r.ok)throw Error('School data failed to load (HTTP '+r.status+'). Refresh the page and retry.');
-  const data=await r.json();schools=data.schools||[];meta=data;
+  const data=await r.json();schools=(data.schools||[]).map(s=>({...s,wing:({'Male':'Male Elementary Wing','Female':'Female Elementary Wing'}[s.wing]||s.wing)}));meta=data;
   if(!schools.length)throw Error('School data file loaded but contains no school records.');
-  fillSelect('wing',['Male','Female','Secondary Wing'],'All Wings');
+  fillSelect('wing',['Male Elementary Wing','Female Elementary Wing','Secondary Wing'],'All Wings');
   fillSelect('district',schools.map(s=>s.district),'All Districts');
   fillSelect('tehsil',schools.map(s=>s.tehsil),'All Tehsils');
   fillSelect('markaz',schools.map(s=>s.markaz),'All Markazs');
