@@ -16,7 +16,7 @@ permissions:
   pages: write
   id-token: write
 concurrency:
-  group: github-pages-fast
+  group: github-pages-repair
   cancel-in-progress: true
 jobs:
   deploy:
