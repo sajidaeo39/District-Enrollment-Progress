@@ -6,6 +6,8 @@ on:
       - "update_punjab_hierarchy.py"
       - "all-level-dashboard.html"
       - "index.html"
+      - "data/master.csv"
+      - "data/master_schema.csv"
       - ".github/workflows/update-punjab-hierarchy.yml"
   schedule:
     - cron: "0 2 * * *"
