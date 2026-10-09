@@ -87,7 +87,7 @@ def main():
         for tid,tn in opts("/user/get_tehsils",{"district":did,"selectedTehsil":"false","all":"All"}):
             for mid,mn in opts("/user/get_markazes",{"tehsil":tid,"selectedMarkaz":"false","all":"All"}):
                 tasks.append((did,dn,tid,tn,mid,mn))
-    def inventory(task):
+    def get_inventory_for_markaz(task):
         did,dn,tid,tn,mid,mn=task;rows=[]
         for sid,label in opts("/user/get_schools",{"markaz":mid,"selectedSchool":"false","all":"All"}):
             e="";name=label
@@ -98,18 +98,18 @@ def main():
             rows.append(dict(did=did,tid=tid,mid=mid,sid=sid,district=dn.strip().upper(),tehsil=tn.strip().upper(),
                 markaz=mn.strip(),wing=wing_of(mn),emis=e,school=name,baseline=b,target=t))
         return rows
-    inventory=[];errors=[]
+    inventory_rows=[];errors=[]
     with ThreadPoolExecutor(max_workers=8) as pool:
-        fs={pool.submit(inventory,t):t for t in tasks}
+        fs={pool.submit(get_inventory_for_markaz,t):t for t in tasks}
         for f in as_completed(fs):
-            try:inventory.extend(f.result())
+            try:inventory_rows.extend(f.result())
             except Exception as e:errors.append(str(fs[f][5])+": "+str(e))
     if errors:raise RuntimeError("Incomplete SIS school inventory; no publish: "+"; ".join(errors[:5]))
-    uniq={ (s["did"],s["tid"],s["mid"],s["sid"]):s for s in inventory };inventory=list(uniq.values())
-    print("Schools discovered:",len(inventory),flush=True)
+    uniq={ (s["did"],s["tid"],s["mid"],s["sid"]):s for s in inventory_rows };inventory_rows=list(uniq.values())
+    print("Schools discovered:",len(inventory_rows),flush=True)
     done=[]
     with ThreadPoolExecutor(max_workers=18) as pool:
-        fs=[pool.submit(live,s) for s in inventory]
+        fs=[pool.submit(live,s) for s in inventory_rows]
         for i,f in enumerate(as_completed(fs),1):
             done.append(f.result())
             if i%1000==0:print("Enrollment fetched",i,"/",len(fs),flush=True)
