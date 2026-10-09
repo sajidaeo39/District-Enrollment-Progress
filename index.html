@@ -50,7 +50,7 @@ let DATA=[];
 const n=v=>Number(v||0).toLocaleString("en-US");
 const el=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-function filtered(){const d=el("district").value,q=el("search").value.trim().toLowerCase();return DATA.filter(r=>(!d||r.district===d)&&(!q||r.district.toLowerCase().includes(q)))}
+function filtered(){const d=el("district").value,q=el("search").value.trim().toLowerCase();return DATA.filter(r=>(!d||r.district===d)&&(!q||r.district.toLowerCase().includes(q))).sort((a,b)=>Number(b.current||0)-Number(a.current||0))}
 function render(){
  const rows=filtered();let sums={baseline:0,newTarget:0,target:0,male:0,female:0,other:0,current:0,remaining:0,increase:0};
  const body=rows.map((r,i)=>{for(const k of Object.keys(sums)){const source={baseline:"baseline",newTarget:"new_target",target:"target",male:"male",female:"female",other:"other",current:"current",remaining:"remaining",increase:"increase"}[k];sums[k]+=Number(r[source]||0)}
