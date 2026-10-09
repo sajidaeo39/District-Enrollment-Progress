@@ -12,7 +12,7 @@ on:
   schedule:
     - cron: "0 2 * * *"
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 concurrency:
@@ -32,6 +32,17 @@ jobs:
           python-version: "3.12"
       - run: pip install requests beautifulsoup4
       - run: python -u update_punjab_hierarchy.py
+      - name: Commit generated dashboard data for branch-based Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/punjab_summary.json data/punjab_schools.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish generated Punjab dashboard data"
+            git push origin HEAD:main
+          else
+            echo "Generated data files unchanged."
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
