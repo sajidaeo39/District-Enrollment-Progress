@@ -31,7 +31,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install requests beautifulsoup4
-      - run: python -u update_punjab_hierarchy.py
+      - name: Refresh live SIS data (best effort; static master-data dashboard must still deploy)
+        id: live_crawl
+        continue-on-error: true
+        run: python -u update_punjab_hierarchy.py
       - name: Commit generated dashboard data for branch-based Pages
         run: |
           git config user.name "github-actions[bot]"
