@@ -1,82 +1,15 @@
-name: Update Punjab District Enrollment Dashboard
+name: Legacy District Enrollment Dashboard (manual only)
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "update_district_progress.py"
-      - "data/district_targets.csv"
-      - "index.html"
-      - ".github/workflows/update-district-dashboard.yml"
-  schedule:
-    - cron: "10 2,8,14,20 * * *"
-      timezone: "Asia/Karachi"
-
 permissions:
   contents: write
   pages: write
   id-token: write
-
 concurrency:
-  group: district-enrollment-dashboard
+  group: legacy-district-enrollment-dashboard
   cancel-in-progress: true
-
 jobs:
   update-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install only required dependency
-        run: python -m pip install --disable-pip-version-check requests
-      - name: Fetch all 40 district totals in parallel
-        run: python -u update_district_progress.py
-      - name: Validate fresh district data
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          from datetime import datetime, timezone
-          p = Path("data/district_progress.json")
-          if not p.exists():
-              raise SystemExit("district_progress.json was not created")
-          d = json.loads(p.read_text(encoding="utf-8"))
-          rows = d.get("districts", [])
-          if d.get("district_count") != 40 or len(rows) != 40:
-              raise SystemExit(f"Expected 40 district records, got {len(rows)}")
-          if len({r.get("district") for r in rows}) != 40:
-              raise SystemExit("Duplicate or missing district names")
-          if any(not r.get("live_available") or int(r.get("current", 0)) <= 0 for r in rows):
-              raise SystemExit("One or more district live totals are invalid")
-          stamp = datetime.fromisoformat(d["updated_at"])
-          if (datetime.now(stamp.tzinfo) - stamp).total_seconds() > 900:
-              raise SystemExit("Generated data is older than 15 minutes")
-          print(f"PASS: {len(rows)} districts; current enrollment {d['current_total']:,}; timestamp {d['updated_at']}")
-          PY
-      - name: Confirm generated data will be included in Pages artifact
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          p = Path("data/district_progress.json")
-          d = json.loads(p.read_text(encoding="utf-8"))
-          print(f"Publishing {d['district_count']} districts from the freshly generated artifact.")
-          PY
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-      - name: Upload dashboard and fresh data
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "."
-      - name: Deploy dashboard
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - run: echo "This legacy district-only workflow is manual-only. The all-level Punjab dashboard workflow handles scheduled updates."
