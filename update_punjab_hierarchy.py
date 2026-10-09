@@ -68,7 +68,7 @@ def aggregate(level,name,items,**where):
     current=sum(x["current"] for x in liveitems);den=target-base
     progress=((target+base-current)*100/target) if target>0 else 0
     return dict(level=level,name=name,**where,school_count=len(items),baseline=base,target=target,expected=base+target,current=current,
-        male=sum(x["male"] for x in liveitems),female=sum(x["female"] for x in liveitems),remaining=target-current,
+        male=sum(x["male"] for x in liveitems),female=sum(x["female"] for x in liveitems),remaining=base+target-current,
         progress_pct=round(max(0,progress),2),live_schools=len(liveitems),failed_schools=len(items)-len(liveitems))
 
 def main():
