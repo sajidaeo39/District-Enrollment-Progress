@@ -22,12 +22,19 @@ def txt(row,*keys):
         if v: return v
     return ""
 
-def wing_for(row,markaz):
+def wing_for(row,markaz,school=""):
+    # Prefer explicit source classification, then the dedicated Markaz/school type.
     w=txt(row,"Wing","wing","School Wing")
-    if w: return w
-    x=markaz.upper()
-    if "FEMALE" in x or "(W)" in x or x.endswith("-W"): return "Female Wing"
-    if "MALE" in x or "(M)" in x or x.endswith("-M"): return "Male Wing"
+    label=w.strip().lower()
+    if "secondary" in label: return "Secondary Wing"
+    if "female" in label: return "Female"
+    if "male" in label: return "Male"
+    m=(markaz or "").strip().upper()
+    s=(school or "").strip().upper()
+    if "SECONDARY" in m or "HIGHER SECONDARY" in s or "HIGH SCHOOL" in s or "HIGHER SECONDARY SCHOOL" in s:
+        return "Secondary Wing"
+    if "FEMALE" in m or "(W)" in m or m.endswith("-W"): return "Female"
+    if "MALE" in m or "(M)" in m or m.endswith("-M"): return "Male"
     return "Unclassified"
 
 def main():
@@ -52,7 +59,7 @@ def main():
         target=num(r,"Total Target 2026","Target 2026","target")
         if not target: target=num(r,"2026 Male target ","2026 Male target","Male Target 2026")+num(r,"2026 female target","2026 Female target","Female Target 2026")
         current=num(r,"Total Current","Current Enrollment 2026","current") or num(r,"Male Current")+num(r,"Female Current")
-        wing=wing_for(r,markaz)
+        wing=wing_for(r,markaz,school)
         schools.append(dict(district=district,tehsil=tehsil,markaz=markaz,wing=wing,emis=emis,school=school,
             baseline=baseline,target=target,current=current,male=num(r,"Male Current"),female=num(r,"Female Current"),
             live_available=True,fetch_error="",source="master.csv"))
