@@ -33,7 +33,7 @@ function makeRow(items,level,name,wing=''){
 }
 function rowsNow(){
   const level=$('level').value,wing=$('wing').value,items=filteredSchools();
-  if(level==='School') return items.map(s=>makeRow([s],'School',(s.school||'Unnamed School')+(s.emis?' · '+s.emis:''),wing)).sort((a,b)=>b.progress_pct-a.progress_pct);
+  if(level==='School') return (wing==='Secondary Wing'?items.filter(s=>s.wing==='Secondary Wing'):items).map(s=>makeRow([s],'School',(s.school||'Unnamed School')+(s.emis?' · '+s.emis:''),wing)).sort((a,b)=>b.progress_pct-a.progress_pct);
   if(level==='Wing'){
     const wings=wing?[wing]:['Male','Female','Secondary Wing'];
     return wings.map(w=>makeRow(items,'Wing',w,w)).filter(r=>r.school_count>0).sort((a,b)=>b.progress_pct-a.progress_pct);
@@ -58,17 +58,16 @@ function rowsNow(){
   return out.sort((a,b)=>b.progress_pct-a.progress_pct);
 }
 function render(){
-  const rs=rowsNow(),sum=k=>rs.reduce((a,r)=>a+(+r[k]||0),0);
-  const filtered=filteredSchools();
+  const rs=rowsNow(),filtered=filteredSchools();
+  const totals=makeRow(filtered,'Filtered','Filtered',$('wing').value);
   $('kDistrict').textContent=n(new Set(filtered.map(s=>s.district).filter(Boolean)).size);
-  $('kSchools').textContent=n(filtered.length);
-  $('kBase').textContent=n(sum('baseline'));
-  $('kTarget').textContent=n(sum('target'));
-  $('kExpected').textContent=n(sum('expected'));
-  $('kCurrent').textContent=n(sum('current'));
-  $('kRemaining').textContent=n(sum('remaining'));
-  const target=sum('target'),remaining=sum('remaining');
-  $('kProgress').textContent=(target?remaining/target*100:0).toFixed(1)+'%';
+  $('kSchools').textContent=n($('wing').value==='Secondary Wing'?filtered.filter(s=>s.wing==='Secondary Wing').length:filtered.length);
+  $('kBase').textContent=n(totals.baseline);
+  $('kTarget').textContent=n(totals.target);
+  $('kExpected').textContent=n(totals.expected);
+  $('kCurrent').textContent=n(totals.current);
+  $('kRemaining').textContent=n(totals.remaining);
+  $('kProgress').textContent=(totals.target?totals.remaining/totals.target*100:0).toFixed(1)+'%';
   $('rows').innerHTML=rs.map((r,i)=>'<tr><td>'+(i+1)+'</td><td class="name">'+esc(r.name)+'</td><td>'+n(r.baseline)+'</td><td>'+n(r.target)+'</td><td>'+n(r.expected)+'</td><td><b>'+n(r.current)+'</b></td><td class="'+(r.remaining<=0?'good':'bad')+'">'+n(r.remaining)+'</td><td>'+r.progress_pct.toFixed(1)+'%</td></tr>').join('')||'<tr><td colspan="8" style="text-align:center;padding:24px">No records match the selected filters.</td></tr>';
 }
 async function load(){
