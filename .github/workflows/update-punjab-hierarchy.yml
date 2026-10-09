@@ -5,6 +5,7 @@ on:
     paths:
       - "update_punjab_hierarchy.py"
       - "all-level-dashboard.html"
+      - "index.html"
       - ".github/workflows/update-punjab-hierarchy.yml"
   schedule:
     - cron: "0 2 * * *"
