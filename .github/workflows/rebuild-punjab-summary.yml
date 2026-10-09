@@ -69,17 +69,16 @@ jobs:
               female_base = number(row, "Female Baseline")
               female_current = number(row, "Female Current")
               female_target = number(row, "2026 female target", "Female Target")
-              # Secondary wing is tagged only where the source school/markaz explicitly identifies it.
+              # Secondary is highest priority; otherwise assign each Markaz to a gender wing.
               explicit_wing = get(row, "Wing", "School Wing").strip().lower()
-              name_text = (school + " " + markaz).upper()
-              if "SECONDARY" in explicit_wing or "SECONDARY" in markaz.upper() or "HIGHER SECONDARY" in school.upper() or "HIGH SCHOOL" in school.upper():
+              wing_text = (explicit_wing + " " + school + " " + markaz).upper()
+              if "SECONDARY" in wing_text or "HIGHER SECONDARY" in wing_text or "HIGH SCHOOL" in wing_text:
                   wing = "Secondary Wing"
-              elif "FEMALE" in explicit_wing or "FEMALE" in markaz.upper():
+              elif "FEMALE" in wing_text:
                   wing = "Female"
-              elif "MALE" in explicit_wing or "MALE" in markaz.upper():
-                  wing = "Male"
               else:
-                  wing = "Unspecified"
+                  # Markaz/school names without MALE or FEMALE are assigned to Male as requested.
+                  wing = "Male"
               schools.append({
                 "level":"School","name":school,"school":school,"district":district,"tehsil":tehsil,"markaz":markaz,
                 "emis":emis,"wing":wing,"baseline":baseline,"target":target,"expected":expected,"current":current,
