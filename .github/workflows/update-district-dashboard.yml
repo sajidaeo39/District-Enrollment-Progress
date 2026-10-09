@@ -62,17 +62,15 @@ jobs:
               raise SystemExit("Generated data is older than 15 minutes")
           print(f"PASS: {len(rows)} districts; current enrollment {d['current_total']:,}; timestamp {d['updated_at']}")
           PY
-      - name: Commit fresh data
+      - name: Confirm generated data will be included in Pages artifact
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/district_progress.json
-          if git diff --cached --quiet; then
-            echo "SIS values unchanged; deployment will still use the validated report."
-          else
-            git commit -m "Update Punjab district SIS enrollment"
-            git push
-          fi
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("data/district_progress.json")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          print(f"Publishing {d['district_count']} districts from the freshly generated artifact.")
+          PY
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload dashboard and fresh data
