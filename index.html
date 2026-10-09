@@ -42,23 +42,26 @@ footer{text-align:center;padding:12px;color:#617286;font-size:11px}
 </section>
 <div class="note">Default order: Highest to Lowest by 2026 target progress · Green = target achieved · Red = target not achieved · Report data is fetched from SIS automatically.</div>
 <div class="table-wrap"><table><thead><tr>
-<th>#</th><th>District</th><th>Baseline</th><th>New Target</th><th>Total Target</th><th>Boys</th><th>Girls</th><th>Other</th><th>Current Total</th><th>Remaining</th><th>2026 Target Progress</th>
-</tr></thead><tbody id="rows"><tr><td colspan="11" style="text-align:center;padding:28px">Loading district enrollment data…</td></tr></tbody></table></div>
+<th>#</th><th>District</th><th>Baseline 2026</th><th>Target 2026</th><th>Total Expected Enrollment 2026</th><th>Target Boys 2026</th><th>Target Girls 2026</th><th>Enrollment + Date</th><th>Remaining 2026 Target</th><th>2026 Target Progress</th>
+</tr></thead><tbody id="rows"><tr><td colspan="10" style="text-align:center;padding:28px">Loading district enrollment data…</td></tr></tbody></table></div>
 </main><footer>Punjab District Enrollment Dashboard · Dashboard developed by M. Sajid</footer>
 <script>
-let DATA=[];
+let DATA=[];let DATA_DATE="";
 const n=v=>Number(v||0).toLocaleString("en-US");
 const el=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 function filtered(){const d=el("district").value,q=el("search").value.trim().toLowerCase();return DATA.filter(r=>(!d||r.district===d)&&(!q||r.district.toLowerCase().includes(q))).sort((a,b)=>Number(b.progress_pct||0)-Number(a.progress_pct||0))}
+function sumsTarget(rows,key){return rows.reduce((a,r)=>a+Number(r[key]||0),0)}
+function sumsTargetBoys(rows){return sumsTarget(rows,"target_boys_2026")}
+function sumsTargetGirls(rows){return sumsTarget(rows,"target_girls_2026")}
 function render(){
  const rows=filtered();let sums={baseline:0,newTarget:0,target:0,male:0,female:0,other:0,current:0,remaining:0,increase:0};
  const body=rows.map((r,i)=>{for(const k of Object.keys(sums)){const source={baseline:"baseline",newTarget:"new_target",target:"target",male:"male",female:"female",other:"other",current:"current",remaining:"remaining",increase:"increase"}[k];sums[k]+=Number(r[source]||0)}
- const growth=Number(r.progress_pct||0);
- return '<tr><td>'+(i+1)+'</td><td class="district">'+esc(r.district)+'</td><td>'+n(r.baseline)+'</td><td>'+n(r.new_target)+'</td><td>'+n(r.target)+'</td><td>'+n(r.male)+'</td><td>'+n(r.female)+'</td><td>'+n(r.other)+'</td><td>'+n(r.current)+'</td><td class="'+(r.current>=r.target?'good':'bad')+'">'+n(r.remaining)+'</td><td><span class="progress"><span class="bar" style="display:block;width:'+Math.min(100,growth)+'%"></span></span>'+growth.toFixed(1)+'%</td></tr>'
+ const growth=Number(r.progress_pct||0);const dateLabel=DATA_DATE||"";
+ return '<tr><td>'+(i+1)+'</td><td class="district">'+esc(r.district)+'</td><td>'+n(r.baseline)+'</td><td>'+n(r.new_target)+'</td><td>'+n(r.target)+'</td><td>'+n(r.target_boys_2026)+'</td><td>'+n(r.target_girls_2026)+'</td><td><strong>'+n(r.current)+'</strong><div style="font-size:10px;color:#667085">'+esc(dateLabel)+'</div></td><td class="'+(r.current>=r.target?'good':'bad')+'">'+n(r.remaining)+'</td><td><span class="progress"><span class="bar" style="display:block;width:'+Math.min(100,growth)+'%"></span></span>'+growth.toFixed(1)+'%</td></tr>'
  }).join("");
  const targetAchieve=sums.target?100*sums.current/sums.target:0;
- el("rows").innerHTML=body+'<tr class="total"><td>—</td><td>TOTAL ('+n(rows.length)+' districts)</td><td>'+n(sums.baseline)+'</td><td>'+n(sums.newTarget)+'</td><td>'+n(sums.target)+'</td><td>'+n(sums.male)+'</td><td>'+n(sums.female)+'</td><td>'+n(sums.other)+'</td><td>'+n(sums.current)+'</td><td>'+n(sums.remaining)+'</td><td>—</td></tr>';
+ el("rows").innerHTML=body+'<tr class="total"><td>—</td><td>TOTAL ('+n(rows.length)+' districts)</td><td>'+n(sums.baseline)+'</td><td>'+n(sums.newTarget)+'</td><td>'+n(sums.target)+'</td><td>'+n(sumsTargetBoys(rows))+'</td><td>'+n(sumsTargetGirls(rows))+'</td><td><strong>'+n(sums.current)+'</strong><div style="font-size:10px;color:#667085">'+esc(DATA_DATE||"")+'</div></td><td>'+n(sums.remaining)+'</td><td>—</td></tr>';
  el("cDistricts").textContent=n(rows.length);el("cTarget").textContent=n(sums.target);el("cCurrent").textContent=n(sums.current);el("cMale").textContent=n(sums.male);el("cFemale").textContent=n(sums.female);el("cRemaining").textContent=n(sums.remaining);el("cAchievement").textContent=targetAchieve.toFixed(1)+"%";el("cBaseline").textContent=n(sums.baseline);
 }
 async function load(){
@@ -66,13 +69,13 @@ async function load(){
  if(!response.ok)throw Error("SIS district data file unavailable (HTTP "+response.status+")");
  const payload=await response.json();DATA=(payload.districts||[]).slice().sort((a,b)=>Number(b.current||0)-Number(a.current||0));
  if(DATA.length!==40)throw Error("Expected 40 district records; received "+DATA.length);
- const stamp=payload.updated_at?new Date(payload.updated_at):new Date();
+ const stamp=payload.updated_at?new Date(payload.updated_at):new Date();DATA_DATE=stamp.toLocaleDateString("en-GB",{timeZone:"Asia/Karachi",day:"2-digit",month:"short",year:"numeric"});
  el("updated").textContent="● SIS data updated: "+stamp.toLocaleString("en-GB",{timeZone:"Asia/Karachi",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true})+" PKT";
  el("district").innerHTML='<option value="">All Districts</option>'+DATA.map(r=>'<option value="'+esc(r.district)+'">'+esc(r.district)+'</option>').join("");
  render();
 }
 el("district").addEventListener("change",render);el("search").addEventListener("input",render);
 el("reset").addEventListener("click",()=>{el("district").value="";el("search").value="";render()});
-el("download").addEventListener("click",()=>{const rows=filtered();const cols=[["District","district"],["Baseline","baseline"],["New Target","new_target"],["Total Target","target"],["Boys","male"],["Girls","female"],["Other","other"],["Current Total","current"],["Remaining","remaining"],["2026 Target Progress %","progress_pct"]];const csv=[cols.map(c=>c[0]),...rows.map(r=>cols.map(c=>r[c[1]]??""))].map(row=>row.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));a.download="Punjab_District_Enrollment_"+new Date().toISOString().slice(0,10)+".csv";a.click();URL.revokeObjectURL(a.href)});
+el("download").addEventListener("click",()=>{const rows=filtered();const cols=[["District","district"],["Baseline 2026","baseline"],["Target 2026","new_target"],["Total Expected Enrollment 2026","target"],["Target Boys 2026","target_boys_2026"],["Target Girls 2026","target_girls_2026"],["Enrollment + Date","current"],["Remaining 2026 Target","remaining"],["2026 Target Progress %","progress_pct"]];const csv=[cols.map(c=>c[0]),...rows.map(r=>cols.map(c=>r[c[1]]??""))].map(row=>row.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));a.download="Punjab_District_Enrollment_"+new Date().toISOString().slice(0,10)+".csv";a.click();URL.revokeObjectURL(a.href)});
 load().catch(err=>{el("updated").textContent="● SIS data unavailable: "+err.message;el("rows").innerHTML='<tr><td colspan="12" style="text-align:center;padding:28px;color:#b42318">Latest district data could not be loaded. Please retry after the scheduled workflow completes.</td></tr>';console.error(err)});
 </script></body></html>
