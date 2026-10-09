@@ -11,9 +11,9 @@ function render(){const rs=rowsNow(),sum=k=>rs.reduce((a,r)=>a+(+r[k]||0),0),bas
     if(!r.ok)throw Error('All-level data file missing (HTTP '+r.status+')');
     meta=await r.json();summary=meta.summary||[];schools=[];
     fillSelect('wing',meta.options?.wings||[],'All Wings');fillSelect('district',meta.options?.districts||[],'All Districts');fillSelect('tehsil',meta.options?.tehsils||[],'All Tehsils');fillSelect('markaz',meta.options?.markazs||[],'All Markazs');
-    $('stamp').textContent='SIS updated: '+fmtDate(meta.updated_at)+' · '+n(meta.live_school_count)+' live schools · '+n(meta.failed_school_count)+' errors';
+    $('stamp').textContent='SIS updated: '+fmtDate(meta.updated_at)+' · '+n(meta.district_count)+' districts in summary';
     render();
-    try{const sr=await fetch('data/punjab_schools.json?build=20261009c',{cache:'no-store'});if(!sr.ok)throw Error('HTTP '+sr.status);const sd=await sr.json();schools=sd.schools||[];render()}catch(e){$('stamp').textContent+=' · School-level file unavailable ('+esc(e.message)+')';}
+    try{const sr=await fetch('data/punjab_schools.json?build=20261009c',{cache:'no-store'});if(!sr.ok)throw Error('HTTP '+sr.status);const sd=await sr.json();schools=sd.schools||[];$('stamp').textContent+=' · '+n(meta.live_school_count)+' live schools · '+n(meta.failed_school_count)+' errors';render()}catch(e){$('stamp').textContent+=' · School-level file unavailable ('+esc(e.message)+')';}
     return;
   }catch(allLevelError){
     // Keep the dashboard useful while the all-level JSON files are absent.
