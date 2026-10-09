@@ -125,7 +125,7 @@ jobs:
             "markaz_count":len({s["markaz"] for s in schools if s["markaz"]}),
             "options":{"wings":["Male","Female","Secondary Wing"],
               "districts":sorted({s["district"] for s in schools if s["district"]}),
-              "tehsils":sorted({s["tehsil"] for s in schools if s["tehsil"]),
+              "tehsils":sorted({s["tehsil"] for s in schools if s["tehsil"]}),
               "markazs":sorted({s["markaz"] for s in schools if s["markaz"]})},
             "summary":summary},ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
           (out/"punjab_schools.json").write_text(json.dumps({"updated_at":stamp,"school_count":len(schools),"schools":schools},ensure_ascii=False,separators=(",",":"))+"\n",encoding="utf-8")
