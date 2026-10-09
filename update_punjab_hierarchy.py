@@ -66,10 +66,10 @@ def aggregate(level,name,items,**where):
     base=sum(x["baseline"] for x in items);target=sum(x["target"] for x in items)
     liveitems=[x for x in items if x["live_available"]]
     current=sum(x["current"] for x in liveitems);den=target-base
-    progress=(current-base)*100/den if den>0 else (100 if current>=target else 0)
+    progress=current*100/target if target>0 else 0
     return dict(level=level,name=name,**where,school_count=len(items),baseline=base,target=target,current=current,
         male=sum(x["male"] for x in liveitems),female=sum(x["female"] for x in liveitems),remaining=target-current,
-        progress_pct=round(max(0,min(100,progress)),2),live_schools=len(liveitems),failed_schools=len(items)-len(liveitems))
+        progress_pct=round(max(0,progress),2),live_schools=len(liveitems),failed_schools=len(items)-len(liveitems))
 
 def main():
     with MASTER.open(newline="",encoding="utf-8-sig") as f:master=list(csv.DictReader(f))
