@@ -70,8 +70,16 @@ jobs:
               female_current = number(row, "Female Current")
               female_target = number(row, "2026 female target", "Female Target")
               # Secondary wing is tagged only where the source school/markaz explicitly identifies it.
+              explicit_wing = get(row, "Wing", "School Wing").strip().lower()
               name_text = (school + " " + markaz).upper()
-              wing = "Secondary Wing" if "SECONDARY" in name_text else ("Female" if "FEMALE" in name_text else "Male" if "MALE" in name_text else "Unspecified")
+              if "SECONDARY" in explicit_wing or "SECONDARY" in markaz.upper() or "HIGHER SECONDARY" in school.upper() or "HIGH SCHOOL" in school.upper():
+                  wing = "Secondary Wing"
+              elif "FEMALE" in explicit_wing or "FEMALE" in markaz.upper():
+                  wing = "Female"
+              elif "MALE" in explicit_wing or "MALE" in markaz.upper():
+                  wing = "Male"
+              else:
+                  wing = "Unspecified"
               schools.append({
                 "level":"School","name":school,"school":school,"district":district,"tehsil":tehsil,"markaz":markaz,
                 "emis":emis,"wing":wing,"baseline":baseline,"target":target,"expected":expected,"current":current,
