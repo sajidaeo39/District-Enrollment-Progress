@@ -1,38 +1,84 @@
-name: Update District Enrollment Dashboard
+name: Update Punjab District Enrollment Dashboard
 on:
-  schedule:
-    - cron: "10 3,9,15,21 * * *"
   workflow_dispatch:
+  push:
+    paths:
+      - "update_district_progress.py"
+      - "data/district_targets.csv"
+      - "index.html"
+      - ".github/workflows/update-district-dashboard.yml"
+  schedule:
+    - cron: "10 2,8,14,20 * * *"
+      timezone: "Asia/Karachi"
+
 permissions:
   contents: write
   pages: write
   id-token: write
+
+concurrency:
+  group: district-enrollment-dashboard
+  cancel-in-progress: true
+
 jobs:
-  update:
+  update-and-deploy:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: python -m pip install pandas openpyxl
-      - run: python update_district_progress.py
-      - run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/district_progress.json
-          git diff --cached --quiet || (git commit -m "Update district enrollment progress" && git push)
-  deploy:
-    needs: update
-    runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          path: .
-      - id: deployment
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install only required dependency
+        run: python -m pip install --disable-pip-version-check requests
+      - name: Fetch all 40 district totals in parallel
+        run: python -u update_district_progress.py
+      - name: Validate fresh district data
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from datetime import datetime, timezone
+          p = Path("data/district_progress.json")
+          if not p.exists():
+              raise SystemExit("district_progress.json was not created")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          rows = d.get("districts", [])
+          if d.get("district_count") != 40 or len(rows) != 40:
+              raise SystemExit(f"Expected 40 district records, got {len(rows)}")
+          if len({r.get("district") for r in rows}) != 40:
+              raise SystemExit("Duplicate or missing district names")
+          if any(not r.get("live_available") or int(r.get("current", 0)) <= 0 for r in rows):
+              raise SystemExit("One or more district live totals are invalid")
+          stamp = datetime.fromisoformat(d["updated_at"])
+          if (datetime.now(stamp.tzinfo) - stamp).total_seconds() > 900:
+              raise SystemExit("Generated data is older than 15 minutes")
+          print(f"PASS: {len(rows)} districts; current enrollment {d['current_total']:,}; timestamp {d['updated_at']}")
+          PY
+      - name: Commit fresh data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/district_progress.json
+          if git diff --cached --quiet; then
+            echo "SIS values unchanged; deployment will still use the validated report."
+          else
+            git commit -m "Update Punjab district SIS enrollment"
+            git push
+          fi
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload dashboard and fresh data
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "."
+      - name: Deploy dashboard
+        id: deployment
         uses: actions/deploy-pages@v4
