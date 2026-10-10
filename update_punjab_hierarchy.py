@@ -51,7 +51,7 @@ def wing_of(markaz,school=""):
     x=m+" "+s
     # Secondary level takes precedence over elementary classification.
     secondary_codes=("GGHS","GGHSS","GBHS","GBHSS","GHS","GHSS","HSS","HIGH SCHOOL","HIGHER SECONDARY","SECONDARY SCHOOL","SECONDARY WING")
-    if any(re.search(r"\\b"+re.escape(k)+r"\\b",x) for k in secondary_codes):
+    if any(re.search(r"\b"+re.escape(k)+r"\b",x) for k in secondary_codes):
         return "Secondary Wing"
     female_codes=("GGPS","GGES","GGHS","GGHSS","GIRLS","GIRL'S","FEMALE","(W)","-W")
     male_codes=("GBPS","GBES","GBHS","GBHSS","BOYS","BOY'S","MALE","(M)","-M")
