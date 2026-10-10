@@ -208,12 +208,17 @@ def main():
             if val is None: raise RuntimeError("Missing verified SIS markaz total: "+str(key))
             for k in total: total[k]+=val[k]
         return total
-    report=[aggregate("Punjab","Punjab Total",done,official=districts)]
-    all_wings=sorted({g["wing"] for g in markaz_groups.values()})
+    district_total={"current":0,"male":0,"female":0}
+    for did,dn in ds:
+        dval=official.get(("District",did,"0","0"))
+        if dval is None: raise RuntimeError("Missing verified SIS district total: "+str(dn))
+        for k in district_total: district_total[k]+=dval[k]
+    report=[aggregate("Punjab","Punjab Total",done,official=district_total)]
+    all_wings=sorted({s["wing"] for s in done})
     for wing in all_wings:
         keys=[k for k,g in markaz_groups.items() if g["wing"]==wing]
         items=[s for k in keys for s in markaz_groups[k]["items"]]
-        report.append(aggregate("Wing",wing,items,official=official_sum(keys),wing=wing))
+        report.append(aggregate("Wing",wing,items,wing=wing))
     for d in sorted({s["district"] for s in done}):
         dg=[s for s in done if s["district"]==d]
         did=next((x[0] for x in ds if x[1].strip().upper()==d),None)
@@ -223,7 +228,7 @@ def main():
             keys=[k for k,g in markaz_groups.items() if k[0]==did and g["wing"]==wing]
             if keys:
                 items=[s for k in keys for s in markaz_groups[k]["items"]]
-                report.append(aggregate("District",d,items,official=official_sum(keys),district=d,wing=wing))
+                report.append(aggregate("District",d,items,district=d,wing=wing))
         for t in sorted({s["tehsil"] for s in dg}):
             tg=[s for s in dg if s["tehsil"]==t]
             tid=next((x[2] for x in tasks if x[1].strip().upper()==d and x[3].strip().upper()==t),None)
@@ -233,7 +238,7 @@ def main():
                 keys=[k for k,g in markaz_groups.items() if k[0]==did and k[1]==tid and g["wing"]==wing]
                 if keys:
                     items=[s for k in keys for s in markaz_groups[k]["items"]]
-                    report.append(aggregate("Tehsil",t,items,official=official_sum(keys),district=d,tehsil=t,wing=wing))
+                    report.append(aggregate("Tehsil",t,items,district=d,tehsil=t,wing=wing))
             for m in sorted({s["markaz"] for s in tg}):
                 mg=[s for s in tg if s["markaz"]==m]
                 mid=next((x[4] for x in tasks if x[1].strip().upper()==d and x[3].strip().upper()==t and x[5].strip()==m),None)
