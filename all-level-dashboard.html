@@ -132,7 +132,7 @@ button,select,input{touch-action:manipulation}
 const $=id=>document.getElementById(id);
 const n=v=>Number(v||0).toLocaleString('en-US');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let schools=[],meta={};
+let schools=[],meta={},hierarchy=[];
 function normalizeWing(value,markaz='',school=''){
   const raw=String(value||'').trim(),x=raw.toLowerCase();
   const m=String(markaz||'').toLowerCase(),s=String(school||'').toLowerCase();
@@ -171,8 +171,19 @@ function makeRow(items,level,name,wing=''){
     progress_pct:target?(target-remaining)/target*100:0};
 }
 function rowsNow(){
-  const level=$('level').value,wing=$('wing').value,items=filteredSchools();
+  const level=$('level').value,wing=$('wing').value,items=filteredSchools(),q=$('search').value.trim();
   if(level==='School') return items.map(s=>makeRow([s],'School',(s.school||'Unnamed School')+(s.emis?' · '+s.emis:''),wing)).sort((a,b)=>b.progress_pct-a.progress_pct);
+  // When no school-level filters are active, use official SIS hierarchy totals.
+  // This prevents the dashboard from undercounting when school endpoint totals do not reconcile to SIS roll-ups.
+  if(!wing&&!q&&hierarchy.length&&['Punjab','District','Tehsil','Markaz','Wing'].includes(level)){
+    let source=hierarchy.filter(r=>r.level===level);
+    if(level==='Punjab'&&!$('district').value&&!$('tehsil').value&&!$('markaz').value) return source.filter(r=>r.name==='Punjab Total');
+    if(level==='Wing'&&!$('district').value&&!$('tehsil').value&&!$('markaz').value) return source;
+    if(level==='District') source=source.filter(r=>(!$('district').value||r.district===$('district').value));
+    if(level==='Tehsil') source=source.filter(r=>(!$('district').value||r.district===$('district').value)&&(! $('tehsil').value||r.tehsil===$('tehsil').value));
+    if(level==='Markaz') source=source.filter(r=>(!$('district').value||r.district===$('district').value)&&(! $('tehsil').value||r.tehsil===$('tehsil').value)&&(! $('markaz').value||r.markaz===$('markaz').value));
+    if(source.length) return source.sort((a,b)=>b.progress_pct-a.progress_pct);
+  }
   if(level==='Wing'){
     const wings=wing?[wing]:[...new Set(items.map(s=>s.wing).filter(Boolean))];
     return wings.map(w=>makeRow(items,'Wing',w,w)).filter(r=>r.school_count>0).sort((a,b)=>b.progress_pct-a.progress_pct);
@@ -198,7 +209,15 @@ function rowsNow(){
 }
 function render(){
   const rs=rowsNow(),filtered=filteredSchools();
-  const totals=makeRow(filtered,'Filtered','Filtered',$('wing').value);
+  let totals=makeRow(filtered,'Filtered','Filtered',$('wing').value);
+  if(!$('wing').value&&!$('search').value.trim()&&!$('district').value&&!$('tehsil').value&&!$('markaz').value){
+    const official=hierarchy.find(r=>r.level==='Punjab'&&r.name==='Punjab Total');
+    if(official) totals=official;
+  } else if(!$('wing').value&&!$('search').value.trim()){
+    const wanted=$('markaz').value?'Markaz':$('tehsil').value?'Tehsil':$('district').value?'District':'';
+    const official=hierarchy.find(r=>r.level===wanted&&(! $('district').value||r.district===$('district').value)&&(! $('tehsil').value||r.tehsil===$('tehsil').value)&&(! $('markaz').value||r.markaz===$('markaz').value));
+    if(official) totals=official;
+  }
   $('kDistrict').textContent=n(new Set(filtered.map(s=>s.district).filter(Boolean)).size);
   $('kSchools').textContent=n($('wing').value==='Secondary Wing'?filtered.filter(s=>s.wing==='Secondary Wing').length:filtered.length);
   $('kBase').textContent=n(totals.baseline);
@@ -210,9 +229,15 @@ function render(){
   $('rows').innerHTML=rs.map((r,i)=>'<tr><td>'+(i+1)+'</td><td class="name">'+esc(r.name)+'</td><td>'+n(r.baseline)+'</td><td>'+n(r.target)+'</td><td>'+n(r.expected)+'</td><td><b>'+n(r.current)+'</b></td><td class="'+(r.remaining<=0?'good':'bad')+'">'+n(r.remaining)+'</td><td>'+r.progress_pct.toFixed(1)+'%</td></tr>').join('')||'<tr><td colspan="8" style="text-align:center;padding:24px">No records match the selected filters.</td></tr>';
 }
 async function load(){
-  const r=await fetch('data/punjab_schools.json?build=20261009f',{cache:'no-store'});
+  const [r,hr]=await Promise.all([
+    fetch('data/punjab_schools.json?build=20261010b',{cache:'no-store'}),
+    fetch('data/punjab_summary.json?build=20261010b',{cache:'no-store'})
+  ]);
   if(!r.ok)throw Error('School data failed to load (HTTP '+r.status+'). Refresh the page and retry.');
-  const data=await r.json();schools=(data.schools||[]).map(s=>({...s,wing:normalizeWing(s.wing,s.markaz,s.school)}));meta=data;
+  if(!hr.ok)throw Error('Official SIS summary failed to load (HTTP '+hr.status+'). Refresh the page and retry.');
+  const data=await r.json(),summary=await hr.json();
+  const sdata=data;schools=(sdata.schools||[]).map(s=>({...s,wing:normalizeWing(s.wing,s.markaz,s.school)}));meta=sdata;
+  hierarchy=summary.summary||[];
   if(!schools.length)throw Error('School data file loaded but contains no school records.');
   fillSelect('wing',[...new Set(['Male Elementary Wing','Female Elementary Wing','Secondary Wing',...schools.map(s=>s.wing)])],'All Wings');
   fillSelect('district',schools.map(s=>s.district),'All Districts');
