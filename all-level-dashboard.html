@@ -136,9 +136,12 @@ let schools=[],meta={},hierarchy=[];
 function normalizeWing(value,markaz='',school=''){
   const raw=String(value||'').trim(),x=raw.toLowerCase();
   const m=String(markaz||'').toLowerCase(),s=String(school||'').toLowerCase();
-  if(/secondary|higher secondary|high school|secondary school/.test(x+' '+m+' '+s)) return 'Secondary Wing';
-  if(/female|girls?|\(w\)|-w$/.test(x+' '+m) || /\bggps\b|\bgges\b|government girls|govt girls|girls school/.test(s)) return 'Female Elementary Wing';
-  if(/male|boys?|\(m\)|-m$/.test(x+' '+m) || /\bgbps\b|\bgbes\b|government boys|govt boys|boys school/.test(s)) return 'Male Elementary Wing';
+  const all=x+' '+m+' '+s;
+  // Detect secondary level first, including common Punjab school codes.
+  if(/secondary|higher secondary|high school|\bhss\b|\b(gghs|gghss|gbhs|gbhss|ghss)\b/.test(all)) return 'Secondary Wing';
+  // Punjab government school prefixes encode gender even when "Girls/Boys" is absent.
+  if(/female|girls?|\(w\)|-w$/.test(x+' '+m) || /\b(ggps|gges)\b|government girls|govt girls|girls school/.test(s)) return 'Female Elementary Wing';
+  if(/male|boys?|\(m\)|-m$/.test(x+' '+m) || /\b(gbps|gbes)\b|government boys|govt boys|boys school/.test(s)) return 'Male Elementary Wing';
   if(/unclassified|unknown|^$/.test(x)) return 'Unclassified';
   return raw;
 }
