@@ -189,7 +189,9 @@ function rowsNow(){
 }
 function render(){
   const rs=rowsNow(),filtered=filteredSchools(),d=$('district').value,t=$('tehsil').value,m=$('markaz').value,w=$('wing').value;
-  const exact=hierarchy.find(r=>r.level==='Markaz'&&r.district===d&&r.tehsil===t&&r.markaz===m&&(!w||r.wing===w))
+  const selectedSchool=filtered.find(s=>String(s.emis||'')===$('school').value);
+  const exact=(selectedSchool?makeRow([selectedSchool],'School',selectedSchool.school||'Selected School',selectedSchool.wing):null)
+    ||hierarchy.find(r=>r.level==='Markaz'&&r.district===d&&r.tehsil===t&&r.markaz===m&&(!w||r.wing===w))
     ||hierarchy.find(r=>r.level==='Tehsil'&&r.district===d&&r.tehsil===t&&(!w||r.wing===w))
     ||hierarchy.find(r=>r.level==='District'&&r.district===d&&(!w||r.wing===w))
     ||(!d&&!w?hierarchy.find(r=>r.level==='Punjab'):null)
@@ -271,8 +273,9 @@ $('district').addEventListener('change',async()=>{
 $('tehsil').addEventListener('change',()=>{
   const d=$('district').value,w=$('wing').value;
   const all=schools.filter(s=>s.district===d&&(!w||s.wing===w));
+  $('markaz').value='';$('school').value='';
   fillSelect('markaz',all.filter(s=>!$('tehsil').value||s.tehsil===$('tehsil').value).map(s=>s.markaz),'All Markazs');
-  $('school').value='';refreshSchoolOptions();render();
+  refreshSchoolOptions();render();
 });
 $('markaz').addEventListener('change',()=>{refreshSchoolOptions();render();});
 $('school').addEventListener('change',render);
