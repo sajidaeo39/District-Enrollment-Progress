@@ -139,7 +139,23 @@ def main():
             except Exception as e:errors.append(str(fs[f][5])+": "+str(e))
     if errors:raise RuntimeError("Incomplete SIS school inventory; no publish: "+"; ".join(errors[:5]))
     uniq={ (s["did"],s["tid"],s["mid"],s["sid"]):s for s in inventory_rows };inventory_rows=list(uniq.values())
-    print("Schools discovered:",len(inventory_rows),flush=True)
+    # Infer missing wing only when all classifiable schools in the same Markaz agree.
+    by_markaz={}
+    for row in inventory_rows:
+        by_markaz.setdefault((row["did"],row["tid"],row["mid"]),[]).append(row)
+    inferred=0
+    for group in by_markaz.values():
+        known=[row["wing"] for row in group if row["wing"]!="Unclassified"]
+        if not known: continue
+        counts={w:known.count(w) for w in set(known)}
+        dominant,n=max(counts.items(),key=lambda pair:pair[1])
+        if len(counts)==1:
+            for row in group:
+                if row["wing"]=="Unclassified":
+                    row["wing"]=dominant
+                    row["wing_inferred_from_markaz"]=True
+                    inferred+=1
+    print("Schools discovered:",len(inventory_rows),"; wing inferred from consistent Markaz:",inferred,flush=True)
     done=[]
     with ThreadPoolExecutor(max_workers=18) as pool:
         fs=[pool.submit(live,s) for s in inventory_rows]
@@ -169,6 +185,17 @@ def main():
             s["used_last_known"]=False
     failures=sum(not s["live_available"] for s in done)
     outschools=[{k:s.get(k) for k in ("district","tehsil","markaz","wing","emis","school","baseline","target","current","male","female","live_available","fetch_error","used_last_known")} for s in done]
+    unclassified=[s for s in done if s.get("wing")=="Unclassified"]
+    by_district={}
+    for s in unclassified: by_district[s["district"]]=by_district.get(s["district"],0)+1
+    print("UNCLASSIFIED COUNT:",len(unclassified),flush=True)
+    print("UNCLASSIFIED BY DISTRICT:",json.dumps(dict(sorted(by_district.items(),key=lambda kv:(-kv[1],kv[0]))),ensure_ascii=False),flush=True)
+    print("UNCLASSIFIED SAMPLE:",json.dumps([{k:s.get(k) for k in ("district","tehsil","markaz","emis","school")} for s in unclassified[:100]],ensure_ascii=False),flush=True)
+    with (ROOT/"data/unclassified_schools.csv").open("w",newline="",encoding="utf-8-sig") as f:
+        w=csv.DictWriter(f,fieldnames=["district","tehsil","markaz","emis","school","reason"])
+        w.writeheader()
+        for s in unclassified:
+            w.writerow({"district":s["district"],"tehsil":s["tehsil"],"markaz":s["markaz"],"emis":s["emis"],"school":s["school"],"reason":"School and Markaz labels do not contain a reliable gender/level indicator"})
     report=[aggregate("Punjab","Punjab Total",done)]
     for w in sorted({s["wing"] for s in done}):report.append(aggregate("Wing",w,[s for s in done if s["wing"]==w],wing=w))
     for d in sorted({s["district"] for s in done}):
