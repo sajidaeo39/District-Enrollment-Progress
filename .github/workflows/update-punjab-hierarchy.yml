@@ -38,7 +38,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html data/punjab_summary.json data/punjab_schools.json
+          git add index.html data/punjab_summary.json data/punjab_schools.json data/unclassified_schools.csv
           if ! git diff --cached --quiet; then
             git commit -m "Publish generated Punjab dashboard data"
             git push origin HEAD:main
