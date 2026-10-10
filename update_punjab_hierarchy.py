@@ -210,28 +210,31 @@ def main():
         did=next((x[0] for x in ds if x[1].strip().upper()==d),None)
         dval=official.get(("District",did,"0","0"))
         report.append(aggregate("District",d,dg,official=dval,district=d))
-        for wing,gkey in (("Male Elementary Wing","male"),("Female Elementary Wing","female")):
+        for wing,gkey in (("Male Elementary Wing","male"),("Female Elementary Wing","female"),("Secondary Wing",None)):
             witems=[s for s in dg if s["wing"]==wing]
             if witems:
-                report.append(aggregate("District",d,witems,official={"current":(dval or {}).get(gkey,0),"male":(dval or {}).get("male",0) if gkey=="male" else 0,"female":(dval or {}).get("female",0) if gkey=="female" else 0},district=d,wing=wing))
+                ov=({"current":(dval or {}).get(gkey,0),"male":(dval or {}).get("male",0) if gkey=="male" else 0,"female":(dval or {}).get("female",0) if gkey=="female" else 0} if gkey else None)
+                report.append(aggregate("District",d,witems,official=ov,district=d,wing=wing))
         for t in sorted({s["tehsil"] for s in dg}):
             tg=[s for s in dg if s["tehsil"]==t]
             tid=next((x[2] for x in tasks if x[1].strip().upper()==d and x[3].strip().upper()==t),None)
             tval=official.get(("Tehsil",did,tid,"0"))
             report.append(aggregate("Tehsil",t,tg,official=tval,district=d,tehsil=t))
-            for wing,gkey in (("Male Elementary Wing","male"),("Female Elementary Wing","female")):
+            for wing,gkey in (("Male Elementary Wing","male"),("Female Elementary Wing","female"),("Secondary Wing",None)):
                 witems=[s for s in tg if s["wing"]==wing]
                 if witems:
-                    report.append(aggregate("Tehsil",t,witems,official={"current":(tval or {}).get(gkey,0),"male":(tval or {}).get("male",0) if gkey=="male" else 0,"female":(tval or {}).get("female",0) if gkey=="female" else 0},district=d,tehsil=t,wing=wing))
+                    ov=({"current":(tval or {}).get(gkey,0),"male":(tval or {}).get("male",0) if gkey=="male" else 0,"female":(tval or {}).get("female",0) if gkey=="female" else 0} if gkey else None)
+                    report.append(aggregate("Tehsil",t,witems,official=ov,district=d,tehsil=t,wing=wing))
             for m in sorted({s["markaz"] for s in tg}):
                 mg=[s for s in tg if s["markaz"]==m]
                 mid=next((x[4] for x in tasks if x[1].strip().upper()==d and x[3].strip().upper()==t and x[5].strip()==m),None)
                 mval=official.get(("Markaz",did,tid,mid))
-                report.append(aggregate("Markaz",m,mg,official=mval,district=d,tehsil=t,markaz=m,wing=mg[0]["wing"]))
-                for wing,gkey in (("Male Elementary Wing","male"),("Female Elementary Wing","female")):
+                report.append(aggregate("Markaz",m,mg,official=mval,district=d,tehsil=t,markaz=m))
+                for wing,gkey in (("Male Elementary Wing","male"),("Female Elementary Wing","female"),("Secondary Wing",None)):
                     witems=[s for s in mg if s["wing"]==wing]
                     if witems:
-                        report.append(aggregate("Markaz",m,witems,official={"current":(mval or {}).get(gkey,0),"male":(mval or {}).get("male",0) if gkey=="male" else 0,"female":(mval or {}).get("female",0) if gkey=="female" else 0},district=d,tehsil=t,markaz=m,wing=wing))
+                        ov=({"current":(mval or {}).get(gkey,0),"male":(mval or {}).get("male",0) if gkey=="male" else 0,"female":(mval or {}).get("female",0) if gkey=="female" else 0} if gkey else None)
+                        report.append(aggregate("Markaz",m,witems,official=ov,district=d,tehsil=t,markaz=m,wing=wing))
     stamp=datetime.now(ZoneInfo("Asia/Karachi")).isoformat()
     meta=dict(updated_at=stamp,district_count=len({s["district"] for s in done}),school_count=len(done),live_school_count=len(done)-failures,failed_school_count=failures,summary=report,
         options=dict(wings=sorted({s["wing"] for s in done}),districts=sorted({s["district"] for s in done}),tehsils=sorted({s["tehsil"] for s in done}),markazs=sorted({s["markaz"] for s in done})))
