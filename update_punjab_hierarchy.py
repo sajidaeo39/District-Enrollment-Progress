@@ -83,7 +83,13 @@ def live(s):
     s.update(current=0,male=0,female=0,live_available=False,fetch_error=error[:120]);return s
 
 def aggregate(level,name,items,official=None,**where):
-    base=sum(x["baseline"] for x in items);target=sum(x["target"] for x in items)
+    wing=str(where.get("wing") or "")
+    if "Male" in wing:
+        base=sum(x.get("male_baseline",0) for x in items);target=sum(x.get("male_target",0) for x in items)
+    elif "Female" in wing:
+        base=sum(x.get("female_baseline",0) for x in items);target=sum(x.get("female_target",0) for x in items)
+    else:
+        base=sum(x["baseline"] for x in items);target=sum(x["target"] for x in items)
     liveitems=[x for x in items if x["live_available"]]
     current=(official or {}).get("current") if official is not None else sum(x.get("current",0) or 0 for x in items)
     male=(official or {}).get("male") if official is not None else sum(x.get("male",0) or 0 for x in items)
@@ -99,9 +105,11 @@ def main():
     for r in master:
         e=emis(r.get("EMIS"))
         if e:
-            b=number(r.get("Total Baseline")) or number(r.get("Male Baseline"))+number(r.get("Female Baseline"))
-            t=number(r.get("Total Target 2026")) or number(r.get("2026 Male target ")) + number(r.get("2026 female target"))
-            target[e]=(b,t)
+            mb=number(r.get("Male Baseline")); fb=number(r.get("Female Baseline"))
+            mt=number(r.get("2026 Male target ")); ft=number(r.get("2026 female target"))
+            b=number(r.get("Total Baseline")) or mb+fb
+            t=number(r.get("Total Target 2026")) or mt+ft
+            target[e]=(b,t,mb,mt,fb,ft)
     ds=opts("/user/get_districts")
     if not ds:raise RuntimeError("SIS district list empty; no data published")
     tasks=[]
@@ -116,9 +124,10 @@ def main():
             if " - " in label:
                 part,rest=label.split(" - ",1)
                 if emis(part):e=emis(part);name=rest.strip()
-            b,t=target.get(e,(0,0))
+            b,t,mb,mt,fb,ft=target.get(e,(0,0,0,0,0,0))
             rows.append(dict(did=did,tid=tid,mid=mid,sid=sid,district=dn.strip().upper(),tehsil=tn.strip().upper(),
-                markaz=mn.strip(),wing=wing_of(mn,name),emis=e,school=name,baseline=b,target=t))
+                markaz=mn.strip(),wing=wing_of(mn,name),emis=e,school=name,baseline=b,target=t,
+                male_baseline=mb,male_target=mt,female_baseline=fb,female_target=ft))
         return rows
     inventory_rows=[];errors=[]
     with ThreadPoolExecutor(max_workers=8) as pool:
@@ -185,27 +194,44 @@ def main():
         for f in as_completed(fs):
             did,tid,mid,level,name=fs[f]
             official[(level,did,tid,mid)]=f.result()
-    # Use SIS roll-ups for every hierarchical level, including Punjab = sum of districts.
+    # Use SIS roll-ups for every hierarchy level; keep a separate accurate row for each gender wing.
     districts={}
     for did,dn in ds:
         val=official[("District",did,"0","0")]
         for k in ("current","male","female"): districts.setdefault(k,0); districts[k]+=val[k]
     report=[aggregate("Punjab","Punjab Total",done,official=districts)]
-    # Gender-based wings use authoritative male/female totals from SIS district aggregates.
-    report.append(aggregate("Wing","Male",[s for s in done if s["wing"]=="Male Elementary Wing"],official={"current":districts["male"],"male":districts["male"],"female":0},wing="Male Elementary Wing"))
-    report.append(aggregate("Wing","Female",[s for s in done if s["wing"]=="Female Elementary Wing"],official={"current":districts["female"],"male":0,"female":districts["female"]},wing="Female Elementary Wing"))
+    for wing,gender_key in (("Male Elementary Wing","male"),("Female Elementary Wing","female")):
+        items=[s for s in done if s["wing"]==wing]
+        report.append(aggregate("Wing",wing,items,official={"current":districts[gender_key],"male":districts["male"] if gender_key=="male" else 0,"female":districts["female"] if gender_key=="female" else 0},wing=wing))
+    secondary=[s for s in done if s["wing"]=="Secondary Wing"]
+    if secondary: report.append(aggregate("Wing","Secondary Wing",secondary,wing="Secondary Wing"))
     for d in sorted({s["district"] for s in done}):
         dg=[s for s in done if s["district"]==d]
         did=next((x[0] for x in ds if x[1].strip().upper()==d),None)
-        report.append(aggregate("District",d,dg,official=official.get(("District",did,"0","0")),district=d))
+        dval=official.get(("District",did,"0","0"))
+        report.append(aggregate("District",d,dg,official=dval,district=d))
+        for wing,gkey in (("Male Elementary Wing","male"),("Female Elementary Wing","female")):
+            witems=[s for s in dg if s["wing"]==wing]
+            if witems:
+                report.append(aggregate("District",d,witems,official={"current":(dval or {}).get(gkey,0),"male":(dval or {}).get("male",0) if gkey=="male" else 0,"female":(dval or {}).get("female",0) if gkey=="female" else 0},district=d,wing=wing))
         for t in sorted({s["tehsil"] for s in dg}):
             tg=[s for s in dg if s["tehsil"]==t]
             tid=next((x[2] for x in tasks if x[1].strip().upper()==d and x[3].strip().upper()==t),None)
-            report.append(aggregate("Tehsil",t,tg,official=official.get(("Tehsil",did,tid,"0")),district=d,tehsil=t))
+            tval=official.get(("Tehsil",did,tid,"0"))
+            report.append(aggregate("Tehsil",t,tg,official=tval,district=d,tehsil=t))
+            for wing,gkey in (("Male Elementary Wing","male"),("Female Elementary Wing","female")):
+                witems=[s for s in tg if s["wing"]==wing]
+                if witems:
+                    report.append(aggregate("Tehsil",t,witems,official={"current":(tval or {}).get(gkey,0),"male":(tval or {}).get("male",0) if gkey=="male" else 0,"female":(tval or {}).get("female",0) if gkey=="female" else 0},district=d,tehsil=t,wing=wing))
             for m in sorted({s["markaz"] for s in tg}):
                 mg=[s for s in tg if s["markaz"]==m]
                 mid=next((x[4] for x in tasks if x[1].strip().upper()==d and x[3].strip().upper()==t and x[5].strip()==m),None)
-                report.append(aggregate("Markaz",m,mg,official=official.get(("Markaz",did,tid,mid)),district=d,tehsil=t,markaz=m,wing=mg[0]["wing"]))
+                mval=official.get(("Markaz",did,tid,mid))
+                report.append(aggregate("Markaz",m,mg,official=mval,district=d,tehsil=t,markaz=m,wing=mg[0]["wing"]))
+                for wing,gkey in (("Male Elementary Wing","male"),("Female Elementary Wing","female")):
+                    witems=[s for s in mg if s["wing"]==wing]
+                    if witems:
+                        report.append(aggregate("Markaz",m,witems,official={"current":(mval or {}).get(gkey,0),"male":(mval or {}).get("male",0) if gkey=="male" else 0,"female":(mval or {}).get("female",0) if gkey=="female" else 0},district=d,tehsil=t,markaz=m,wing=wing))
     stamp=datetime.now(ZoneInfo("Asia/Karachi")).isoformat()
     meta=dict(updated_at=stamp,district_count=len({s["district"] for s in done}),school_count=len(done),live_school_count=len(done)-failures,failed_school_count=failures,summary=report,
         options=dict(wings=sorted({s["wing"] for s in done}),districts=sorted({s["district"] for s in done}),tehsils=sorted({s["tehsil"] for s in done}),markazs=sorted({s["markaz"] for s in done})))
