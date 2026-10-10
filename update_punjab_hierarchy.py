@@ -237,9 +237,22 @@ def main():
             for m in sorted({s["markaz"] for s in tg}):
                 mg=[s for s in tg if s["markaz"]==m];report.append(aggregate("Markaz",m,mg,district=d,tehsil=t,markaz=m,wing=mg[0]["wing"]))
     stamp=datetime.now(ZoneInfo("Asia/Karachi")).isoformat()
+    # Publish lightweight district shards so the browser does not download and parse
+    # all 38k school rows on the first page load.
+    shard_dir=ROOT/"data"/"districts"
+    shard_dir.mkdir(parents=True,exist_ok=True)
+    district_files={}
+    for district in sorted({s["district"] for s in outschools}):
+        slug=re.sub(r"[^a-z0-9]+","-",district.lower()).strip("-") or "district"
+        filename=slug+".json"
+        district_files[district]=filename
+        rows=[s for s in outschools if s["district"]==district]
+        (shard_dir/filename).write_text(json.dumps(dict(updated_at=stamp,district=district,schools=rows),separators=(",",":"),ensure_ascii=False),encoding="utf-8")
     meta=dict(updated_at=stamp,district_count=len({s["district"] for s in done}),school_count=len(done),live_school_count=len(done)-failures,failed_school_count=failures,summary=report,
-        options=dict(wings=sorted({s["wing"] for s in done}),districts=sorted({s["district"] for s in done}),tehsils=sorted({s["tehsil"] for s in done}),markazs=sorted({s["markaz"] for s in done})))
+        options=dict(wings=sorted({s["wing"] for s in done}),districts=sorted({s["district"] for s in done}),tehsils=sorted({s["tehsil"] for s in done}),markazs=sorted({s["markaz"] for s in done}),district_files=district_files))
     SUMMARY.write_text(json.dumps(meta,separators=(",",":"),ensure_ascii=False),encoding="utf-8")
+    # Keep the full source snapshot for updater fallback; the dashboard now loads
+    # only one district shard after a district is selected.
     SCHOOLS.write_text(json.dumps(dict(updated_at=stamp,schools=outschools),separators=(",",":"),ensure_ascii=False),encoding="utf-8")
     # Query SIS aggregate totals for every district, tehsil and markaz.
     # Do not publish a partially reconciled hierarchy if any aggregate fails.
