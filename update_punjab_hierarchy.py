@@ -44,15 +44,22 @@ def number(v):
 def emis(v):return re.sub(r"\D","",str(v or ""))
 
 def wing_of(markaz,school=""):
-    # Classify school level first: high/higher-secondary schools belong to Secondary Wing,
-    # even when their Markaz is a male/female elementary Markaz.
-    x=(str(markaz or "")+" "+str(school or "")).upper()
-    if any(k in x for k in ("HIGH SCHOOL","HIGHER SECONDARY","SECONDARY SCHOOL","HSS","SECONDARY WING")):
+    # Use school gender/level codes as well as full names; Markaz labels alone
+    # are not sufficient because elementary Markazes may contain secondary schools.
+    m=str(markaz or "").strip().upper()
+    s=str(school or "").strip().upper()
+    x=m+" "+s
+    # Secondary level takes precedence over elementary classification.
+    secondary_codes=("GGHS","GGHSS","GBHS","GBHSS","GHS","GHSS","HSS","HIGH SCHOOL","HIGHER SECONDARY","SECONDARY SCHOOL","SECONDARY WING")
+    if any(re.search(r"\\b"+re.escape(k)+r"\\b",x) for k in secondary_codes):
         return "Secondary Wing"
-    if "FEMALE" in x or "(W)" in x or x.endswith("-W") or "GIRLS" in str(school or "").upper():
-        return "Female Elementary Wing"
-    if "MALE" in x or "(M)" in x or x.endswith("-M") or "BOYS" in str(school or "").upper():
-        return "Male Elementary Wing"
+    female_codes=("GGPS","GGES","GGHS","GGHSS","GIRLS","GIRL'S","FEMALE","(W)","-W")
+    male_codes=("GBPS","GBES","GBHS","GBHSS","BOYS","BOY'S","MALE","(M)","-M")
+    # Explicit gender codes / school names are used before generic Markaz labels.
+    if any(k in s for k in female_codes) or "FEMALE" in m or "(W)" in m or m.endswith("-W"):
+        return "Female Elementary Wing" if not any(k in s for k in ("GGHS","GGHSS")) else "Secondary Wing"
+    if any(k in s for k in male_codes) or "MALE" in m or "(M)" in m or m.endswith("-M"):
+        return "Male Elementary Wing" if not any(k in s for k in ("GBHS","GBHSS")) else "Secondary Wing"
     return "Unclassified"
 
 def live_aggregate(did,tid="0",mid="0"):
