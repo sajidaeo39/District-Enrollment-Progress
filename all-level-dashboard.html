@@ -173,16 +173,21 @@ function makeRow(items,level,name,wing=''){
 function rowsNow(){
   const level=$('level').value,wing=$('wing').value,items=filteredSchools(),q=$('search').value.trim();
   if(level==='School') return items.map(s=>makeRow([s],'School',(s.school||'Unnamed School')+(s.emis?' · '+s.emis:''),wing)).sort((a,b)=>b.progress_pct-a.progress_pct);
-  // When no school-level filters are active, use official SIS hierarchy totals.
-  // This prevents the dashboard from undercounting when school endpoint totals do not reconcile to SIS roll-ups.
-  if(!wing&&!q&&hierarchy.length&&['Punjab','District','Tehsil','Markaz','Wing'].includes(level)){
-    let source=hierarchy.filter(r=>r.level===level);
-    if(level==='Punjab'&&!$('district').value&&!$('tehsil').value&&!$('markaz').value) return source.filter(r=>r.name==='Punjab Total');
-    if(level==='Wing'&&!$('district').value&&!$('tehsil').value&&!$('markaz').value) return source;
+  // Use official SIS roll-ups at hierarchy levels, including wing-specific totals.
+  if(!q&&hierarchy.length&&['Punjab','District','Tehsil','Markaz','Wing'].includes(level)){
+    if(level==='Punjab'&&!$('district').value&&!$('tehsil').value&&!$('markaz').value){
+      if(wing){const wr=hierarchy.find(r=>r.level==='Wing'&&r.wing===wing);if(wr)return [wr];}
+      const p=hierarchy.filter(r=>r.level==='Punjab'&&r.name==='Punjab Total');if(p.length)return p;
+    }
+    if(level==='Wing'&&!$('district').value&&!$('tehsil').value&&!$('markaz').value){
+      const src=hierarchy.filter(r=>r.level==='Wing'&&(!wing||r.wing===wing));
+      if(src.length)return src.sort((a,b)=>b.progress_pct-a.progress_pct);
+    }
+    let source=hierarchy.filter(r=>r.level===level&&(!wing||r.wing===wing));
     if(level==='District') source=source.filter(r=>(!$('district').value||r.district===$('district').value));
     if(level==='Tehsil') source=source.filter(r=>(!$('district').value||r.district===$('district').value)&&(! $('tehsil').value||r.tehsil===$('tehsil').value));
     if(level==='Markaz') source=source.filter(r=>(!$('district').value||r.district===$('district').value)&&(! $('tehsil').value||r.tehsil===$('tehsil').value)&&(! $('markaz').value||r.markaz===$('markaz').value));
-    if(source.length) return source.sort((a,b)=>b.progress_pct-a.progress_pct);
+    if(source.length)return source.sort((a,b)=>b.progress_pct-a.progress_pct);
   }
   if(level==='Wing'){
     const wings=wing?[wing]:[...new Set(items.map(s=>s.wing).filter(Boolean))];
@@ -210,13 +215,16 @@ function rowsNow(){
 function render(){
   const rs=rowsNow(),filtered=filteredSchools();
   let totals=makeRow(filtered,'Filtered','Filtered',$('wing').value);
-  if(!$('wing').value&&!$('search').value.trim()&&!$('district').value&&!$('tehsil').value&&!$('markaz').value){
-    const official=hierarchy.find(r=>r.level==='Punjab'&&r.name==='Punjab Total');
-    if(official) totals=official;
-  } else if(!$('wing').value&&!$('search').value.trim()){
-    const wanted=$('markaz').value?'Markaz':$('tehsil').value?'Tehsil':$('district').value?'District':'';
-    const official=hierarchy.find(r=>r.level===wanted&&(! $('district').value||r.district===$('district').value)&&(! $('tehsil').value||r.tehsil===$('tehsil').value)&&(! $('markaz').value||r.markaz===$('markaz').value));
-    if(official) totals=official;
+  if(!$('search').value.trim()){
+    const wing=$('wing').value;
+    if(!$('district').value&&!$('tehsil').value&&!$('markaz').value){
+      const official=wing?hierarchy.find(r=>r.level==='Wing'&&r.wing===wing):hierarchy.find(r=>r.level==='Punjab'&&r.name==='Punjab Total');
+      if(official)totals=official;
+    } else {
+      const wanted=$('markaz').value?'Markaz':$('tehsil').value?'Tehsil':$('district').value?'District':'';
+      const official=hierarchy.find(r=>r.level===wanted&&(!wing||r.wing===wing)&&(! $('district').value||r.district===$('district').value)&&(! $('tehsil').value||r.tehsil===$('tehsil').value)&&(! $('markaz').value||r.markaz===$('markaz').value));
+      if(official)totals=official;
+    }
   }
   $('kDistrict').textContent=n(new Set(filtered.map(s=>s.district).filter(Boolean)).size);
   $('kSchools').textContent=n($('wing').value==='Secondary Wing'?filtered.filter(s=>s.wing==='Secondary Wing').length:filtered.length);
