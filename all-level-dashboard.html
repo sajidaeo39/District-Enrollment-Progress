@@ -175,6 +175,10 @@ function rowsNow(){
     const wings=wing?[wing]:[...new Set(hierarchy.filter(r=>r.level==='Wing').map(r=>r.name))];
     return wings.map(w=>hierarchy.find(r=>r.level==='Wing'&&r.name===w)).filter(Boolean);
   }
+  if($('school').value){
+    const selected=items.find(s=>String(s.emis||'')===$('school').value);
+    return selected?[makeRow([selected],'School',(selected.school||'Unnamed School')+(selected.emis?' · '+selected.emis:''),selected.wing)]:[];
+  }
   if(!d)return hierarchy.filter(r=>r.level==='District'&&!r.wing).sort((a,b)=>b.current-a.current);
   if(level==='District')return hierarchy.filter(r=>r.level==='District'&&r.district===d&&(!wing||r.wing===wing));
   if(level==='Tehsil')return hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&(!t||r.tehsil===t)&&(!wing||r.wing===wing));
