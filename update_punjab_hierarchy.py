@@ -83,13 +83,8 @@ def live(s):
     s.update(current=0,male=0,female=0,live_available=False,fetch_error=error[:120]);return s
 
 def aggregate(level,name,items,official=None,**where):
-    wing=str(where.get("wing") or "")
-    if "Male" in wing:
-        base=sum(x.get("male_baseline",0) for x in items);target=sum(x.get("male_target",0) for x in items)
-    elif "Female" in wing:
-        base=sum(x.get("female_baseline",0) for x in items);target=sum(x.get("female_target",0) for x in items)
-    else:
-        base=sum(x["baseline"] for x in items);target=sum(x["target"] for x in items)
+    # Baseline and target are school-record sums for the selected administrative wing.
+    base=sum(x["baseline"] for x in items);target=sum(x["target"] for x in items)
     liveitems=[x for x in items if x["live_available"]]
     current=(official or {}).get("current") if official is not None else sum(x.get("current",0) or 0 for x in items)
     male=(official or {}).get("male") if official is not None else sum(x.get("male",0) or 0 for x in items)
@@ -194,47 +189,57 @@ def main():
         for f in as_completed(fs):
             did,tid,mid,level,name=fs[f]
             official[(level,did,tid,mid)]=f.result()
-    # Use SIS roll-ups for every hierarchy level; keep a separate accurate row for each gender wing.
-    districts={}
-    for did,dn in ds:
-        val=official[("District",did,"0","0")]
-        for k in ("current","male","female"): districts.setdefault(k,0); districts[k]+=val[k]
+    # Assign each markaz to one administrative wing, then use SIS markaz roll-ups
+    # so wing, tehsil, district and Punjab totals reconcile without double counting genders.
+    markaz_groups={}
+    for did,dn,tid,tn,mid,mn in tasks:
+        items=[s for s in done if s["did"]==did and s["tid"]==tid and s["mid"]==mid]
+        if not items: continue
+        wing=wing_of(mn)
+        if wing=="Unclassified":
+            counts={}
+            for s in items: counts[s["wing"]]=counts.get(s["wing"],0)+1
+            wing=max(counts,key=counts.get) if counts else "Unclassified"
+        markaz_groups[(did,tid,mid)]={"wing":wing,"items":items,"district":dn.strip().upper(),"tehsil":tn.strip().upper(),"markaz":mn.strip()}
+    def official_sum(groups):
+        total={"current":0,"male":0,"female":0}
+        for key in groups:
+            val=official.get(("Markaz",key[0],key[1],key[2]))
+            if val is None: raise RuntimeError("Missing verified SIS markaz total: "+str(key))
+            for k in total: total[k]+=val[k]
+        return total
     report=[aggregate("Punjab","Punjab Total",done,official=districts)]
-    for wing,gender_key in (("Male Elementary Wing","male"),("Female Elementary Wing","female")):
-        items=[s for s in done if s["wing"]==wing]
-        report.append(aggregate("Wing",wing,items,official={"current":districts[gender_key],"male":districts["male"] if gender_key=="male" else 0,"female":districts["female"] if gender_key=="female" else 0},wing=wing))
-    secondary=[s for s in done if s["wing"]=="Secondary Wing"]
-    if secondary: report.append(aggregate("Wing","Secondary Wing",secondary,wing="Secondary Wing"))
+    all_wings=sorted({g["wing"] for g in markaz_groups.values()})
+    for wing in all_wings:
+        keys=[k for k,g in markaz_groups.items() if g["wing"]==wing]
+        items=[s for k in keys for s in markaz_groups[k]["items"]]
+        report.append(aggregate("Wing",wing,items,official=official_sum(keys),wing=wing))
     for d in sorted({s["district"] for s in done}):
         dg=[s for s in done if s["district"]==d]
         did=next((x[0] for x in ds if x[1].strip().upper()==d),None)
         dval=official.get(("District",did,"0","0"))
         report.append(aggregate("District",d,dg,official=dval,district=d))
-        for wing,gkey in (("Male Elementary Wing","male"),("Female Elementary Wing","female"),("Secondary Wing",None)):
-            witems=[s for s in dg if s["wing"]==wing]
-            if witems:
-                ov=({"current":(dval or {}).get(gkey,0),"male":(dval or {}).get("male",0) if gkey=="male" else 0,"female":(dval or {}).get("female",0) if gkey=="female" else 0} if gkey else None)
-                report.append(aggregate("District",d,witems,official=ov,district=d,wing=wing))
+        for wing in all_wings:
+            keys=[k for k,g in markaz_groups.items() if k[0]==did and g["wing"]==wing]
+            if keys:
+                items=[s for k in keys for s in markaz_groups[k]["items"]]
+                report.append(aggregate("District",d,items,official=official_sum(keys),district=d,wing=wing))
         for t in sorted({s["tehsil"] for s in dg}):
             tg=[s for s in dg if s["tehsil"]==t]
             tid=next((x[2] for x in tasks if x[1].strip().upper()==d and x[3].strip().upper()==t),None)
             tval=official.get(("Tehsil",did,tid,"0"))
             report.append(aggregate("Tehsil",t,tg,official=tval,district=d,tehsil=t))
-            for wing,gkey in (("Male Elementary Wing","male"),("Female Elementary Wing","female"),("Secondary Wing",None)):
-                witems=[s for s in tg if s["wing"]==wing]
-                if witems:
-                    ov=({"current":(tval or {}).get(gkey,0),"male":(tval or {}).get("male",0) if gkey=="male" else 0,"female":(tval or {}).get("female",0) if gkey=="female" else 0} if gkey else None)
-                    report.append(aggregate("Tehsil",t,witems,official=ov,district=d,tehsil=t,wing=wing))
+            for wing in all_wings:
+                keys=[k for k,g in markaz_groups.items() if k[0]==did and k[1]==tid and g["wing"]==wing]
+                if keys:
+                    items=[s for k in keys for s in markaz_groups[k]["items"]]
+                    report.append(aggregate("Tehsil",t,items,official=official_sum(keys),district=d,tehsil=t,wing=wing))
             for m in sorted({s["markaz"] for s in tg}):
                 mg=[s for s in tg if s["markaz"]==m]
                 mid=next((x[4] for x in tasks if x[1].strip().upper()==d and x[3].strip().upper()==t and x[5].strip()==m),None)
                 mval=official.get(("Markaz",did,tid,mid))
-                report.append(aggregate("Markaz",m,mg,official=mval,district=d,tehsil=t,markaz=m))
-                for wing,gkey in (("Male Elementary Wing","male"),("Female Elementary Wing","female"),("Secondary Wing",None)):
-                    witems=[s for s in mg if s["wing"]==wing]
-                    if witems:
-                        ov=({"current":(mval or {}).get(gkey,0),"male":(mval or {}).get("male",0) if gkey=="male" else 0,"female":(mval or {}).get("female",0) if gkey=="female" else 0} if gkey else None)
-                        report.append(aggregate("Markaz",m,witems,official=ov,district=d,tehsil=t,markaz=m,wing=wing))
+                mw=markaz_groups.get((did,tid,mid),{}).get("wing","Unclassified")
+                report.append(aggregate("Markaz",m,mg,official=mval,district=d,tehsil=t,markaz=m,wing=mw))
     stamp=datetime.now(ZoneInfo("Asia/Karachi")).isoformat()
     meta=dict(updated_at=stamp,district_count=len({s["district"] for s in done}),school_count=len(done),live_school_count=len(done)-failures,failed_school_count=failures,summary=report,
         options=dict(wings=sorted({s["wing"] for s in done}),districts=sorted({s["district"] for s in done}),tehsils=sorted({s["tehsil"] for s in done}),markazs=sorted({s["markaz"] for s in done})))
