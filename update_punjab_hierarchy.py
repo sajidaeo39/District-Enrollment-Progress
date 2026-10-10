@@ -82,6 +82,32 @@ def live_aggregate(did,tid="0",mid="0"):
             error=str(e);time.sleep(.4*(attempt+1))
     raise RuntimeError("SIS aggregate unavailable for "+str((did,tid,mid))+": "+error[:120])
 
+def live_punjab_aggregate():
+    # Always ask SIS for the province-level total directly. Summing district roll-ups
+    # can be lower than the official Punjab total when the SIS hierarchy has residual
+    # or unassigned records. Never substitute a hard-coded total.
+    variants=[
+        {"district":"0","tehsil":"0","markaz":"0","school":"0","classes":"0","s_id_emis_code":""},
+        {"district":"","tehsil":"0","markaz":"0","school":"0","classes":"0","s_id_emis_code":""},
+        {"district":"0","tehsil":"","markaz":"","school":"0","classes":"0","s_id_emis_code":""},
+        {},
+    ]
+    errors=[]
+    for params in variants:
+        try:
+            d=get("/dashboard_revamp/get_gender_summary_pie",params).json()
+            if isinstance(d,dict) and "total" in d:
+                val={"current":number(d["total"]),"male":number(d.get("male_count")),"female":number(d.get("female_count"))}
+                if val["current"]>0:
+                    print("DIRECT SIS PUNJAB TOTAL:",val["current"],"; params:",json.dumps(params),flush=True)
+                    return val
+                errors.append("zero total for "+json.dumps(params))
+            else:
+                errors.append("unexpected response for "+json.dumps(params))
+        except Exception as e:
+            errors.append(str(e)[:120])
+    raise RuntimeError("Could not verify direct Punjab SIS enrollment total; refusing to publish a district-sum substitute. "+ "; ".join(errors[:4]))
+
 def live(s):
     p={"district":s["did"],"tehsil":s["tid"],"markaz":s["mid"],"school":s["sid"],"classes":"0","s_id_emis_code":""}
     error=""
@@ -253,7 +279,12 @@ def main():
         dval=official.get(("District",did,"0","0"))
         if dval is None: raise RuntimeError("Missing verified SIS district total: "+str(dn))
         for k in district_total: district_total[k]+=dval[k]
-    report=[aggregate("Punjab","Punjab Total",done,official=district_total)]
+    print("SUM OF DISTRICT SIS TOTALS:",district_total["current"],flush=True)
+    punjab_total=live_punjab_aggregate()
+    print("PUNJAB VS DISTRICT-SUM DIFFERENCE:",punjab_total["current"]-district_total["current"],flush=True)
+    # Punjab KPI uses the live province-level SIS total, refreshed on every run.
+    # If this direct check fails, the job fails and keeps the last good published data.
+    report=[aggregate("Punjab","Punjab Total",done,official=punjab_total)]
     all_wings=sorted({s["wing"] for s in done})
     for wing in all_wings:
         keys=[k for k,g in markaz_groups.items() if g["wing"]==wing]
