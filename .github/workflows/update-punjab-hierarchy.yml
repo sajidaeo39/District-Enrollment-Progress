@@ -10,7 +10,7 @@ on:
       - "data/master_schema.csv"
       - ".github/workflows/update-punjab-hierarchy.yml"
   schedule:
-    - cron: "0 2 * * *"
+    - cron: "0 2,8,14,20 * * *"
 permissions:
   contents: write
   pages: write
