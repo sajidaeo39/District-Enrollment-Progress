@@ -87,31 +87,6 @@ def main():
     payload=json.dumps(meta,separators=(",",":"),ensure_ascii=False).replace("<","\\u003c").replace(">","\\u003e").replace("&","\\u0026")
     SUMMARY.write_text(payload,encoding="utf-8")
     SCHOOLS.write_text(json.dumps(dict(updated_at=stamp,source="data/master.csv snapshot",schools=schools),separators=(",",":"),ensure_ascii=False),encoding="utf-8")
-    # Embed the summary in index.html so dashboard cards still render if static JSON fetch is cached/blocked.
-    page=ROOT/"index.html"
-    if page.exists():
-        html=page.read_text(encoding="utf-8")
-        marker="/*SUMMARY_DATA_START*/window.__PUNJAB_SUMMARY__=null;/*SUMMARY_DATA_END*/"
-        replacement="/*SUMMARY_DATA_START*/window.__PUNJAB_SUMMARY__="+payload+";/*SUMMARY_DATA_END*/"
-        if marker in html:
-            html=html.replace(marker,replacement,1)
-        elif "window.__PUNJAB_SUMMARY__=" not in html:
-            raise SystemExit("Cannot embed summary: index.html marker is missing")
-        # Make figures and rows visible in raw HTML even if client JavaScript is blocked.
-        total=report[0]
-        for ident,value in (("kDistrict",meta["district_count"]),("kSchools",len(schools)),("kBase",total["baseline"]),("kTarget",total["target"]),("kExpected",total["expected"]),("kCurrent",total["current"]),("kRemaining",total["remaining"]),("kProgress",str(total["progress_pct"])+"%")):
-            def replace_value(m):
-                v=format(value,",") if isinstance(value,(int,float)) else str(value)
-                return m.group(1)+v+m.group(2)
-            html=re.sub(r'(<div class="value" id="'+ident+r'">).*?(</div>)',replace_value,html,count=1)
-        def h(v):
-            return str(v if v is not None else "").replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace('"',"&quot;")
-        static_rows=[]
-        for i,row in enumerate(report[:250],1):
-            vals=[i,row["name"],row["baseline"],row["target"],row["expected"],row["current"],row["remaining"],str(row["progress_pct"])+"%"]
-            static_rows.append("<tr>"+ "".join("<td>"+h(v)+"</td>" for v in vals)+"</tr>")
-        html=re.sub(r'(<tbody id="rows">).*?(</tbody>)',lambda m:m.group(1)+"".join(static_rows)+m.group(2),html,count=1,flags=re.S)
-        page.write_text(html,encoding="utf-8")
     print("SUCCESS: built",len(schools),"schools and",len(report),"Punjab/Wing/District/Tehsil/Markaz summary rows from master.csv",flush=True)
 
 if __name__=="__main__": main()
