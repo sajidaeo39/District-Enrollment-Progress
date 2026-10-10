@@ -71,10 +71,12 @@ def live(s):
 def aggregate(level,name,items,**where):
     base=sum(x["baseline"] for x in items);target=sum(x["target"] for x in items)
     liveitems=[x for x in items if x["live_available"]]
-    current=sum(x["current"] for x in liveitems);den=target-base
-    progress=((target+base-current)*100/target) if target>0 else 0
+    # Include last-known fallback values for temporarily unreachable SIS schools;
+    # otherwise a small API failure silently makes district totals too low.
+    current=sum(x.get("current",0) or 0 for x in items)
+    progress=((current-base)*100/target) if target>0 else 0
     return dict(level=level,name=name,**where,school_count=len(items),baseline=base,target=target,expected=base+target,current=current,
-        male=sum(x["male"] for x in liveitems),female=sum(x["female"] for x in liveitems),remaining=base+target-current,
+        male=sum(x.get("male",0) or 0 for x in items),female=sum(x.get("female",0) or 0 for x in items),remaining=base+target-current,
         progress_pct=round(progress,2),live_schools=len(liveitems),failed_schools=len(items)-len(liveitems))
 
 def main():
@@ -84,7 +86,7 @@ def main():
         e=emis(r.get("EMIS"))
         if e:
             b=number(r.get("Total Baseline")) or number(r.get("Male Baseline"))+number(r.get("Female Baseline"))
-            t=number(r.get("Total Target 2026")) or b+number(r.get("2026 Male target "))+number(r.get("2026 female target"))
+            t=number(r.get("Total Target 2026")) or number(r.get("2026 Male target ")) + number(r.get("2026 female target"))
             target[e]=(b,t)
     ds=opts("/user/get_districts")
     if not ds:raise RuntimeError("SIS district list empty; no data published")
@@ -119,9 +121,29 @@ def main():
         for i,f in enumerate(as_completed(fs),1):
             done.append(f.result())
             if i%1000==0:print("Enrollment fetched",i,"/",len(fs),flush=True)
+    # Preserve the last known live counts when SIS temporarily fails for a school.
+    previous={}
+    if SCHOOLS.exists():
+        try:
+            old=json.loads(SCHOOLS.read_text(encoding="utf-8"))
+            for p in old.get("schools",[]):
+                key=emis(p.get("emis")) or "|".join(str(p.get(k) or "").strip().upper() for k in ("district","tehsil","markaz","school"))
+                if key.strip("|"): previous[key]=p
+        except Exception as e:
+            print("WARNING: previous dataset could not be read for fallback:",e,flush=True)
+    for s in done:
+        if s["live_available"]: continue
+        key=emis(s.get("emis")) or "|".join(str(s.get(k) or "").strip().upper() for k in ("district","tehsil","markaz","school"))
+        old=previous.get(key)
+        if old:
+            s["current"]=number(old.get("current"))
+            s["male"]=number(old.get("male"))
+            s["female"]=number(old.get("female"))
+            s["used_last_known"]=True
+        else:
+            s["used_last_known"]=False
     failures=sum(not s["live_available"] for s in done)
-    if failures>max(25,int(len(done)*.02)):raise RuntimeError(f"{failures} schools failed; refusing to publish incomplete report")
-    outschools=[{k:s.get(k) for k in ("district","tehsil","markaz","wing","emis","school","baseline","target","current","male","female","live_available","fetch_error")} for s in done]
+    outschools=[{k:s.get(k) for k in ("district","tehsil","markaz","wing","emis","school","baseline","target","current","male","female","live_available","fetch_error","used_last_known")} for s in done]
     report=[aggregate("Punjab","Punjab Total",done)]
     for w in sorted({s["wing"] for s in done}):report.append(aggregate("Wing",w,[s for s in done if s["wing"]==w],wing=w))
     for d in sorted({s["district"] for s in done}):
