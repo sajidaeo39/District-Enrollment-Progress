@@ -48,18 +48,24 @@ def wing_of(markaz,school=""):
     # are not sufficient because elementary Markazes may contain secondary schools.
     m=str(markaz or "").strip().upper()
     s=str(school or "").strip().upper()
-    x=m+" "+s
+    # Normalize separators so SECONDARY-WING, SECONDARY WING and similar labels match.
+    x=re.sub(r"[^A-Z0-9]+"," ",m+" "+s).strip()
+    sn=re.sub(r"[^A-Z0-9]+"," ",s).strip()
     # Secondary level takes precedence over elementary classification.
     secondary_codes=("GGHS","GGHSS","GBHS","GBHSS","GHS","GHSS","HSS","HIGH SCHOOL","HIGHER SECONDARY","SECONDARY SCHOOL","SECONDARY WING")
     if any(re.search(r"\b"+re.escape(k)+r"\b",x) for k in secondary_codes):
         return "Secondary Wing"
-    female_codes=("GGPS","GGES","GGHS","GGHSS","GIRLS","GIRL'S","FEMALE","(W)","-W")
-    male_codes=("GBPS","GBES","GBHS","GBHSS","BOYS","BOY'S","MALE","(M)","-M")
+    female_codes=("GGPS","GGES","GGHS","GGHSS","GIRLS","GIRL S","FEMALE","QAED F","W")
+    male_codes=("GBPS","GBES","GBHS","GBHSS","BOYS","BOY S","MALE","QAED M","M")
     # Explicit gender codes / school names are used before generic Markaz labels.
-    if any(k in s for k in female_codes) or "FEMALE" in m or "(W)" in m or m.endswith("-W"):
+    if any(re.search(r"\b"+re.escape(k)+r"\b",sn) for k in female_codes) or "FEMALE" in m or re.search(r"\bW\b",m):
         return "Female Elementary Wing" if not any(k in s for k in ("GGHS","GGHSS")) else "Secondary Wing"
-    if any(k in s for k in male_codes) or "MALE" in m or "(M)" in m or m.endswith("-M"):
+    if any(re.search(r"\b"+re.escape(k)+r"\b",sn) for k in male_codes) or "MALE" in m or re.search(r"\bM\b",m):
         return "Male Elementary Wing" if not any(k in s for k in ("GBHS","GBHSS")) else "Secondary Wing"
+    # In Punjab naming, unprefixed GPS is the boys/general primary-school code;
+    # girls' primary schools are explicitly prefixed GGPS.
+    if re.match(r"^GPS\b",sn):
+        return "Male Elementary Wing"
     return "Unclassified"
 
 def live_aggregate(did,tid="0",mid="0"):
