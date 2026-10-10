@@ -55,6 +55,20 @@ def wing_of(markaz,school=""):
         return "Male Elementary Wing"
     return "Unclassified"
 
+def live_aggregate(did,tid="0",mid="0"):
+    # Use SIS's own hierarchy total because the sum of school endpoints can differ.
+    p={"district":did,"tehsil":tid or "0","markaz":mid or "0","school":"0","classes":"0","s_id_emis_code":""}
+    error=""
+    for attempt in range(3):
+        try:
+            d=get("/dashboard_revamp/get_gender_summary_pie",p).json()
+            if not isinstance(d,dict) or "total" not in d:
+                raise ValueError("Unexpected SIS aggregate response")
+            return {"current":number(d["total"]),"male":number(d.get("male_count")),"female":number(d.get("female_count"))}
+        except Exception as e:
+            error=str(e);time.sleep(.4*(attempt+1))
+    raise RuntimeError("SIS aggregate unavailable for "+str((did,tid,mid))+": "+error[:120])
+
 def live(s):
     p={"district":s["did"],"tehsil":s["tid"],"markaz":s["mid"],"school":s["sid"],"classes":"0","s_id_emis_code":""}
     error=""
@@ -68,15 +82,15 @@ def live(s):
             error=str(e);time.sleep(.4*(attempt+1))
     s.update(current=0,male=0,female=0,live_available=False,fetch_error=error[:120]);return s
 
-def aggregate(level,name,items,**where):
+def aggregate(level,name,items,official=None,**where):
     base=sum(x["baseline"] for x in items);target=sum(x["target"] for x in items)
     liveitems=[x for x in items if x["live_available"]]
-    # Include last-known fallback values for temporarily unreachable SIS schools;
-    # otherwise a small API failure silently makes district totals too low.
-    current=sum(x.get("current",0) or 0 for x in items)
+    current=(official or {}).get("current") if official is not None else sum(x.get("current",0) or 0 for x in items)
+    male=(official or {}).get("male") if official is not None else sum(x.get("male",0) or 0 for x in items)
+    female=(official or {}).get("female") if official is not None else sum(x.get("female",0) or 0 for x in items)
     progress=((current-base)*100/target) if target>0 else 0
     return dict(level=level,name=name,**where,school_count=len(items),baseline=base,target=target,expected=base+target,current=current,
-        male=sum(x.get("male",0) or 0 for x in items),female=sum(x.get("female",0) or 0 for x in items),remaining=base+target-current,
+        male=male,female=female,remaining=base+target-current,
         progress_pct=round(progress,2),live_schools=len(liveitems),failed_schools=len(items)-len(liveitems))
 
 def main():
@@ -157,6 +171,46 @@ def main():
         options=dict(wings=sorted({s["wing"] for s in done}),districts=sorted({s["district"] for s in done}),tehsils=sorted({s["tehsil"] for s in done}),markazs=sorted({s["markaz"] for s in done})))
     SUMMARY.write_text(json.dumps(meta,separators=(",",":"),ensure_ascii=False),encoding="utf-8")
     SCHOOLS.write_text(json.dumps(dict(updated_at=stamp,schools=outschools),separators=(",",":"),ensure_ascii=False),encoding="utf-8")
-    print("SUCCESS",len(done),"schools; failures",failures,"; report rows",len(report),flush=True)
+    # Query SIS aggregate totals for every district, tehsil and markaz.
+    # Do not publish a partially reconciled hierarchy if any aggregate fails.
+    agg_keys=set()
+    for did,dn in ds:
+        agg_keys.add((did,"0","0","District",dn.strip().upper()))
+    for did,dn,tid,tn,mid,mn in tasks:
+        agg_keys.add((did,tid,"0","Tehsil",tn.strip().upper()))
+        agg_keys.add((did,tid,mid,"Markaz",mn.strip()))
+    official={}
+    with ThreadPoolExecutor(max_workers=18) as pool:
+        fs={pool.submit(live_aggregate,did,tid,mid):(did,tid,mid,level,name) for did,tid,mid,level,name in agg_keys}
+        for f in as_completed(fs):
+            did,tid,mid,level,name=fs[f]
+            official[(level,did,tid,mid)]=f.result()
+    # Use SIS roll-ups for every hierarchical level, including Punjab = sum of districts.
+    districts={}
+    for did,dn in ds:
+        val=official[("District",did,"0","0")]
+        for k in ("current","male","female"): districts.setdefault(k,0); districts[k]+=val[k]
+    report=[aggregate("Punjab","Punjab Total",done,official=districts)]
+    # Gender-based wings use authoritative male/female totals from SIS district aggregates.
+    report.append(aggregate("Wing","Male",[s for s in done if s["wing"]=="Male Elementary Wing"],official={"current":districts["male"],"male":districts["male"],"female":0},wing="Male Elementary Wing"))
+    report.append(aggregate("Wing","Female",[s for s in done if s["wing"]=="Female Elementary Wing"],official={"current":districts["female"],"male":0,"female":districts["female"]},wing="Female Elementary Wing"))
+    for d in sorted({s["district"] for s in done}):
+        dg=[s for s in done if s["district"]==d]
+        did=next((x[0] for x in ds if x[1].strip().upper()==d),None)
+        report.append(aggregate("District",d,dg,official=official.get(("District",did,"0","0")),district=d))
+        for t in sorted({s["tehsil"] for s in dg}):
+            tg=[s for s in dg if s["tehsil"]==t]
+            tid=next((x[2] for x in tasks if x[1].strip().upper()==d and x[3].strip().upper()==t),None)
+            report.append(aggregate("Tehsil",t,tg,official=official.get(("Tehsil",did,tid,"0")),district=d,tehsil=t))
+            for m in sorted({s["markaz"] for s in tg}):
+                mg=[s for s in tg if s["markaz"]==m]
+                mid=next((x[4] for x in tasks if x[1].strip().upper()==d and x[3].strip().upper()==t and x[5].strip()==m),None)
+                report.append(aggregate("Markaz",m,mg,official=official.get(("Markaz",did,tid,mid)),district=d,tehsil=t,markaz=m,wing=mg[0]["wing"]))
+    stamp=datetime.now(ZoneInfo("Asia/Karachi")).isoformat()
+    meta=dict(updated_at=stamp,district_count=len({s["district"] for s in done}),school_count=len(done),live_school_count=len(done)-failures,failed_school_count=failures,summary=report,
+        options=dict(wings=sorted({s["wing"] for s in done}),districts=sorted({s["district"] for s in done}),tehsils=sorted({s["tehsil"] for s in done}),markazs=sorted({s["markaz"] for s in done})))
+    SUMMARY.write_text(json.dumps(meta,separators=(",",":"),ensure_ascii=False),encoding="utf-8")
+    SCHOOLS.write_text(json.dumps(dict(updated_at=stamp,schools=outschools),separators=(",",":"),ensure_ascii=False),encoding="utf-8")
+    print("SUCCESS",len(done),"schools; failures",failures,"; verified SIS hierarchy aggregates",len(official),"; report rows",len(report),flush=True)
 
 if __name__=="__main__":main()
