@@ -128,7 +128,7 @@ button,select,input{touch-action:manipulation}
  .filters #level,.filters #wing,.filters #district,.filters #tehsil,.filters #markaz{font-size:8px}
  .filters #download,.filters #pdf{font-size:9px}
 }
-</style></head><body><header><div class="headrow"><div class="headmain"><h1>SED Punjab 2026 Enrollment Dashboard</h1><div class="byline">Dashboard developed by M.Sajid AEO Markaz Amli Moti (W), Tehsil Depalpur, District Okara</div><div class="stamp" id="stamp">Loading latest report date…</div><div id="dashboardDisclaimer" style="max-width:1000px;margin:8px auto 0;padding:7px 12px;border:1px solid #e1e7ef;border-radius:8px;background:#f8fafc;color:#52657a;font-size:11px;line-height:1.45;text-align:center">Disclaimer: This dashboard is for informational and monitoring purposes only. Please verify the displayed data through the official SIS portal before making any official decision.</div></div><a class="channel" href="https://www.youtube.com/@SajidEducationalhelper" target="_blank" rel="noopener noreferrer" aria-label="Subscribe to M.Sajid the Educational Helper on YouTube"><span class="yticon">▶</span><span><strong>Subscribe to M.Sajid the Educational Helper</strong><small>Get latest video tutorials about SED Punjab Apps</small></span></a></div></header><main><section class="cards"><div class="card"><div class="label">DISTRICTS</div><div class="value" id="kDistrict">—</div></div><div class="card"><div class="label">SCHOOLS</div><div class="value" id="kSchools">—</div></div><div class="card"><div class="label">BASELINE 2026</div><div class="value" id="kBase">—</div></div><div class="card"><div class="label">TARGET 2026</div><div class="value" id="kTarget">—</div></div><div class="card"><div class="label">EXPECTED ENROLLMENT 2026</div><div class="value" id="kExpected">—</div></div><div class="card"><div class="label">CURRENT ENROLLMENT 2026</div><div class="value" id="kCurrent">—</div></div><div class="card"><div class="label">REMAINING 2026 TARGET</div><div class="value" id="kRemaining">—</div></div><div class="card"><div class="label">2026 TARGET PROGRESS</div><div class="value" id="kProgress">—</div></div></section><section class="filters"><select id="level"><option value="Punjab">Punjab Total</option><option value="Wing">Wing-wise</option><option value="District">District-wise</option><option value="Tehsil">Tehsil-wise</option><option value="Markaz">Markaz-wise</option><option value="School">School-wise</option></select><select id="wing"><option value="">All Wings</option></select><select id="district"><option value="">All Districts</option></select><select id="tehsil"><option value="">All Tehsils</option></select><select id="markaz"><option value="">All Markazs</option></select><input id="search" type="search" placeholder="Search school / EMIS / name"><button class="btn filter-reset" id="reset">Reset</button><button class="btn csv" id="download">Download Excel (CSV)</button><button class="btn" id="pdf">Download PDF</button></section><div class="tablebox"><table><thead><tr><th>#</th><th>Report / School</th><th>Baseline 2026</th><th>Target 2026</th><th>Expected Enrollment 2026</th><th>Current Enrollment 2026</th><th>Remaining 2026 Target</th><th>2026 Target Progress</th></tr></thead><tbody id="rows"><tr><td colspan="8" style="text-align:center;padding:30px">Waiting for the all-level SIS data file.</td></tr></tbody></table></div></main><script>
+</style></head><body><header><div class="headrow"><div class="headmain"><h1>SED Punjab 2026 Enrollment Dashboard</h1><div class="byline">Dashboard developed by M.Sajid AEO Markaz Amli Moti (W), Tehsil Depalpur, District Okara</div><div class="stamp" id="stamp">Loading latest report date…</div><div id="dashboardDisclaimer" style="max-width:1000px;margin:8px auto 0;padding:7px 12px;border:1px solid #e1e7ef;border-radius:8px;background:#f8fafc;color:#52657a;font-size:11px;line-height:1.45;text-align:center">Disclaimer: This dashboard is for informational and monitoring purposes only. Please verify the displayed data through the official SIS portal before making any official decision.</div></div><a class="channel" href="https://www.youtube.com/@SajidEducationalhelper" target="_blank" rel="noopener noreferrer" aria-label="Subscribe to M.Sajid the Educational Helper on YouTube"><span class="yticon">▶</span><span><strong>Subscribe to M.Sajid the Educational Helper</strong><small>Get latest video tutorials about SED Punjab Apps</small></span></a></div></header><main><section class="cards"><div class="card"><div class="label">DISTRICTS</div><div class="value" id="kDistrict">—</div></div><div class="card"><div class="label">SCHOOLS</div><div class="value" id="kSchools">—</div></div><div class="card"><div class="label">BASELINE 2026</div><div class="value" id="kBase">—</div></div><div class="card"><div class="label">TARGET 2026</div><div class="value" id="kTarget">—</div></div><div class="card"><div class="label">EXPECTED ENROLLMENT 2026</div><div class="value" id="kExpected">—</div></div><div class="card"><div class="label">CURRENT ENROLLMENT 2026</div><div class="value" id="kCurrent">—</div></div><div class="card"><div class="label">REMAINING 2026 TARGET</div><div class="value" id="kRemaining">—</div></div><div class="card"><div class="label">2026 TARGET PROGRESS</div><div class="value" id="kProgress">—</div></div></section><section class="filters"><select id="level"><option value="Punjab">Punjab Total</option><option value="Wing">Wing-wise</option><option value="District">District-wise</option><option value="Tehsil">Tehsil-wise</option><option value="Markaz">Markaz-wise</option><option value="School">School-wise</option></select><select id="wing"><option value="">All Wings</option></select><select id="district"><option value="">All Districts</option></select><select id="tehsil"><option value="">All Tehsils</option></select><select id="markaz"><option value="">All Markazs</option></select><select id="school" disabled><option value="">Select Markaz first, then School</option></select><input id="search" type="search" placeholder="Search school / EMIS / name"><button class="btn filter-reset" id="reset">Reset</button><button class="btn csv" id="download">Download Excel (CSV)</button><button class="btn" id="pdf">Download PDF</button></section><div class="tablebox"><table><thead><tr><th>#</th><th>Report / School</th><th>Baseline 2026</th><th>Target 2026</th><th>Expected Enrollment 2026</th><th>Current Enrollment 2026</th><th>Remaining 2026 Target</th><th>2026 Target Progress</th></tr></thead><tbody id="rows"><tr><td colspan="8" style="text-align:center;padding:30px">Waiting for the all-level SIS data file.</td></tr></tbody></table></div></main><script>
 const $=id=>document.getElementById(id);
 const n=v=>Number(v||0).toLocaleString('en-US');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -151,11 +151,11 @@ function fillSelect(id,values,label){
   if([...e.options].some(o=>o.value===old))e.value=old;
 }
 function filteredSchools(){
-  const district=$('district').value,tehsil=$('tehsil').value,markaz=$('markaz').value;
+  const district=$('district').value,tehsil=$('tehsil').value,markaz=$('markaz').value,school=$('school').value;
   const q=$('search').value.trim().toLowerCase();
   const wing=$('wing').value;
   return schools.filter(s=>
-    (!wing||s.wing===wing)&&(!district||s.district===district)&&(!tehsil||s.tehsil===tehsil)&&(!markaz||s.markaz===markaz)&&
+    (!wing||s.wing===wing)&&(!district||s.district===district)&&(!tehsil||s.tehsil===tehsil)&&(!markaz||s.markaz===markaz)&&(!school||String(s.emis||'')===school)&&
     (!q||[s.school,s.emis,s.district,s.tehsil,s.markaz,s.wing].join(' ').toLowerCase().includes(q))
   );
 }
@@ -174,61 +174,40 @@ function makeRow(items,level,name,wing=''){
     progress_pct:target?(target-remaining)/target*100:0};
 }
 function rowsNow(){
-  const level=$('level').value,wing=$('wing').value,items=filteredSchools(),q=$('search').value.trim();
-  if(level==='School') return items.map(s=>makeRow([s],'School',(s.school||'Unnamed School')+(s.emis?' · '+s.emis:''),wing)).sort((a,b)=>b.progress_pct-a.progress_pct);
-  // Use official SIS roll-ups at hierarchy levels, including wing-specific totals.
-  if(!q&&hierarchy.length&&['Punjab','District','Tehsil','Markaz','Wing'].includes(level)){
-    if(level==='Punjab'&&!$('district').value&&!$('tehsil').value&&!$('markaz').value){
-      if(wing){const wr=hierarchy.find(r=>r.level==='Wing'&&r.wing===wing);if(wr)return [wr];}
-      const p=hierarchy.filter(r=>r.level==='Punjab'&&r.name==='Punjab Total');if(p.length)return p;
-    }
-    if(level==='Wing'&&!$('district').value&&!$('tehsil').value&&!$('markaz').value){
-      const src=hierarchy.filter(r=>r.level==='Wing'&&(!wing||r.wing===wing));
-      if(src.length)return src.sort((a,b)=>b.progress_pct-a.progress_pct);
-    }
-    let source=hierarchy.filter(r=>r.level===level&&(!wing||r.wing===wing));
-    if(level==='District') source=source.filter(r=>(!$('district').value||r.district===$('district').value));
-    if(level==='Tehsil') source=source.filter(r=>(!$('district').value||r.district===$('district').value)&&(! $('tehsil').value||r.tehsil===$('tehsil').value));
-    if(level==='Markaz') source=source.filter(r=>(!$('district').value||r.district===$('district').value)&&(! $('tehsil').value||r.tehsil===$('tehsil').value)&&(! $('markaz').value||r.markaz===$('markaz').value));
-    if(source.length)return source.sort((a,b)=>b.progress_pct-a.progress_pct);
+  const level=$('level').value,items=filteredSchools(),wing=$('wing').value;
+  // The Punjab landing view shows all districts instead of a single Punjab total.
+  // Every row is computed from the currently filtered school records, so all filters cascade.
+  if(level==='School'){
+    return items.map(s=>makeRow([s],'School',(s.school||'Unnamed School')+(s.emis?' · '+s.emis:''),s.wing)).sort((a,b)=>b.progress_pct-a.progress_pct);
   }
   if(level==='Wing'){
     const wings=wing?[wing]:[...new Set(items.map(s=>s.wing).filter(Boolean))];
     return wings.map(w=>makeRow(items,'Wing',w,w)).filter(r=>r.school_count>0).sort((a,b)=>b.progress_pct-a.progress_pct);
   }
+  let keys;
+  if(level==='Punjab'||level==='District') keys=['district'];
+  else if(level==='Tehsil') keys=['district','tehsil'];
+  else keys=['district','tehsil','markaz'];
   const groups=new Map();
-  if(level==='Punjab') groups.set('Punjab Total',items);
-  else {
-    const keys=level==='District'?['district']:level==='Tehsil'?['district','tehsil']:['district','tehsil','markaz'];
-    for(const s of items){
-      const parts=keys.map(k=>s[k]||'').filter(Boolean);
-      if(parts.length!==keys.length) continue;
-      const key=parts.join('|||');
-      if(!groups.has(key))groups.set(key,[]);
-      groups.get(key).push(s);
-    }
+  for(const s of items){
+    const parts=keys.map(k=>s[k]||'');
+    if(parts.some(v=>!v)) continue;
+    const key=parts.join('|||');
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(s);
   }
   const out=[];
   for(const [key,group] of groups){
-    const name=level==='Punjab'?'Punjab Total':key.split('|||').slice(-1)[0];
+    const parts=key.split('|||');
+    const name=level==='Punjab'||level==='District'?parts[0]:parts[parts.length-1];
     out.push(makeRow(group,level,name,wing));
   }
   return out.sort((a,b)=>b.progress_pct-a.progress_pct);
 }
 function render(){
   const rs=rowsNow(),filtered=filteredSchools();
-  let totals=makeRow(filtered,'Filtered','Filtered',$('wing').value);
-  if(!$('search').value.trim()){
-    const wing=$('wing').value;
-    if(!$('district').value&&!$('tehsil').value&&!$('markaz').value){
-      const official=wing?hierarchy.find(r=>r.level==='Wing'&&r.wing===wing):hierarchy.find(r=>r.level==='Punjab'&&r.name==='Punjab Total');
-      if(official)totals=official;
-    } else {
-      const wanted=$('markaz').value?'Markaz':$('tehsil').value?'Tehsil':$('district').value?'District':'';
-      const official=hierarchy.find(r=>r.level===wanted&&(!wing||r.wing===wing)&&(! $('district').value||r.district===$('district').value)&&(! $('tehsil').value||r.tehsil===$('tehsil').value)&&(! $('markaz').value||r.markaz===$('markaz').value));
-      if(official)totals=official;
-    }
-  }
+  // KPIs always summarize the exact school records currently shown by the filters.
+  const totals=makeRow(filtered,'Filtered','Filtered','');
   $('kDistrict').textContent=n(new Set(filtered.map(s=>s.district).filter(Boolean)).size);
   $('kSchools').textContent=n($('wing').value==='Secondary Wing'?filtered.filter(s=>s.wing==='Secondary Wing').length:filtered.length);
   $('kBase').textContent=n(totals.baseline);
@@ -254,6 +233,7 @@ async function load(){
   fillSelect('district',schools.map(s=>s.district),'All Districts');
   fillSelect('tehsil',schools.map(s=>s.tehsil),'All Tehsils');
   fillSelect('markaz',schools.map(s=>s.markaz),'All Markazs');
+  refreshSchoolOptions();
   const t=new Date(data.updated_at);
   $('stamp').textContent='Latest Report '+(isNaN(t)?'date unavailable':t.toLocaleString('en-GB',{timeZone:'Asia/Karachi',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true})+' PK')+' · Pakistan time';
   render();
@@ -264,16 +244,36 @@ function refreshHierarchy(){
   fillSelect('tehsil',all.filter(matches).map(s=>s.tehsil),'All Tehsils');
   const t=$('tehsil').value;
   fillSelect('markaz',all.filter(s=>matches(s)&&(!t||s.tehsil===t)).map(s=>s.markaz),'All Markazs');
+  refreshSchoolOptions();
   render();
+}
+function refreshSchoolOptions(){
+  const el=$('school'),markaz=$('markaz').value,items=schools.filter(s=>
+    (!$('wing').value||s.wing===$('wing').value)&&
+    (!$('district').value||s.district===$('district').value)&&
+    (!$('tehsil').value||s.tehsil===$('tehsil').value)&&
+    (!markaz||s.markaz===markaz)
+  );
+  const old=el.value;
+  if(!markaz){
+    el.innerHTML='<option value="">Select Markaz first, then School</option>';
+    el.disabled=true;
+    return;
+  }
+  const unique=[...new Map(items.map(s=>[String(s.emis||s.school),s])).values()].sort((a,b)=>(a.school||'').localeCompare(b.school||''));
+  el.innerHTML='<option value="">All Schools in selected Markaz</option>'+unique.map(s=>'<option value="'+esc(s.emis||'')+'">'+esc(s.school||'Unnamed School')+(s.emis?' · '+esc(s.emis):'')+'</option>').join('');
+  el.disabled=false;
+  if(unique.some(s=>String(s.emis||'')===old))el.value=old;
 }
 $('level').addEventListener('change',render);
 $('wing').addEventListener('change',refreshHierarchy);
 $('district').addEventListener('change',refreshHierarchy);
 $('tehsil').addEventListener('change',refreshHierarchy);
-$('markaz').addEventListener('change',render);
+$('markaz').addEventListener('change',()=>{refreshSchoolOptions();render();});
+$('school').addEventListener('change',()=>{if($('school').value)$('level').value='School';render();});
 $('search').addEventListener('input',render);
 $('reset').addEventListener('click',()=>{
-  ['wing','district','tehsil','markaz','search'].forEach(id=>$(id).value='');
+  ['wing','district','tehsil','markaz','school','search'].forEach(id=>$(id).value='');
   $('level').value='Punjab';
   refreshHierarchy();
 });
