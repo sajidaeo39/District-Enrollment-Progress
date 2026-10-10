@@ -330,8 +330,9 @@ def main():
                 mw=markaz_groups.get((did,tid,mid),{}).get("wing","Unclassified")
                 report.append(aggregate("Markaz",m,mg,official=mval,district=d,tehsil=t,markaz=m,wing=mw))
     stamp=datetime.now(ZoneInfo("Asia/Karachi")).isoformat()
+    district_files={d: (re.sub(r"[^a-z0-9]+","-",d.lower()).strip("-") or "district")+".json" for d in sorted({s["district"] for s in outschools})}
     meta=dict(updated_at=stamp,district_count=len({s["district"] for s in done}),school_count=len(done),live_school_count=len(done)-failures,failed_school_count=failures,summary=report,
-        options=dict(wings=sorted({s["wing"] for s in done}),districts=sorted({s["district"] for s in done}),tehsils=sorted({s["tehsil"] for s in done}),markazs=sorted({s["markaz"] for s in done})))
+        options=dict(wings=sorted({s["wing"] for s in done}),districts=sorted({s["district"] for s in done}),tehsils=sorted({s["tehsil"] for s in done}),markazs=sorted({s["markaz"] for s in done}),district_files=district_files))
     SUMMARY.write_text(json.dumps(meta,separators=(",",":"),ensure_ascii=False),encoding="utf-8")
     SCHOOLS.write_text(json.dumps(dict(updated_at=stamp,schools=outschools),separators=(",",":"),ensure_ascii=False),encoding="utf-8")
     print("SUCCESS",len(done),"schools; failures",failures,"; verified SIS hierarchy aggregates",len(official),"; report rows",len(report),flush=True)
