@@ -43,10 +43,16 @@ def number(v):
 
 def emis(v):return re.sub(r"\D","",str(v or ""))
 
-def wing_of(markaz):
-    x=markaz.upper()
-    if "FEMALE" in x or "(W)" in x or x.endswith("-W"):return "Female Wing"
-    if "MALE" in x or "(M)" in x or x.endswith("-M"):return "Male Wing"
+def wing_of(markaz,school=""):
+    # Classify school level first: high/higher-secondary schools belong to Secondary Wing,
+    # even when their Markaz is a male/female elementary Markaz.
+    x=(str(markaz or "")+" "+str(school or "")).upper()
+    if any(k in str(school or "").upper() for k in ("HIGH SCHOOL","HIGHER SECONDARY","SECONDARY SCHOOL","HSS")):
+        return "Secondary Wing"
+    if "FEMALE" in x or "(W)" in x or x.endswith("-W") or "GIRLS" in str(school or "").upper():
+        return "Female Elementary Wing"
+    if "MALE" in x or "(M)" in x or x.endswith("-M") or "BOYS" in str(school or "").upper():
+        return "Male Elementary Wing"
     return "Unclassified"
 
 def live(s):
@@ -96,7 +102,7 @@ def main():
                 if emis(part):e=emis(part);name=rest.strip()
             b,t=target.get(e,(0,0))
             rows.append(dict(did=did,tid=tid,mid=mid,sid=sid,district=dn.strip().upper(),tehsil=tn.strip().upper(),
-                markaz=mn.strip(),wing=wing_of(mn),emis=e,school=name,baseline=b,target=t))
+                markaz=mn.strip(),wing=wing_of(mn,name),emis=e,school=name,baseline=b,target=t))
         return rows
     inventory_rows=[];errors=[]
     with ThreadPoolExecutor(max_workers=8) as pool:
