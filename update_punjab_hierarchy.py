@@ -47,7 +47,7 @@ def wing_of(markaz,school=""):
     # Classify school level first: high/higher-secondary schools belong to Secondary Wing,
     # even when their Markaz is a male/female elementary Markaz.
     x=(str(markaz or "")+" "+str(school or "")).upper()
-    if any(k in str(school or "").upper() for k in ("HIGH SCHOOL","HIGHER SECONDARY","SECONDARY SCHOOL","HSS")):
+    if any(k in x for k in ("HIGH SCHOOL","HIGHER SECONDARY","SECONDARY SCHOOL","HSS","SECONDARY WING")):
         return "Secondary Wing"
     if "FEMALE" in x or "(W)" in x or x.endswith("-W") or "GIRLS" in str(school or "").upper():
         return "Female Elementary Wing"
