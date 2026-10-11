@@ -278,6 +278,10 @@ function hierarchyRows(level, filters={}) {
   });
 }
 function aggregateRows(items,level,keyFn,labelFn){
+  // Defensive guards: malformed/missing callbacks must never break dashboard loading.
+  if(typeof keyFn!=='function') keyFn=(item)=>String(item?.district||'')+'|'+String(item?.tehsil||item?.markaz||item?.name||'');
+  if(typeof labelFn!=='function') labelFn=(item)=>String(item?.tehsil||item?.district||item?.markaz||item?.name||level||'Summary');
+  if(!Array.isArray(items)) items=[];
   const groups=new Map();
   items.forEach(item=>{
     const key=keyFn(item);
