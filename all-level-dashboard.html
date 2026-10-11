@@ -362,7 +362,7 @@ function render(){
   }else{
     totalsRows=hierarchy.filter(r=>r.level==='Punjab'&&!r.wing);
   }
-  let totals=totalsRows.length?aggregateRows(totalsRows,'Summary',()=> 'all','Summary')[0]:makeRow(filtered,'Filtered','Filtered','');
+  let totals=totalsRows.length?aggregateRows(totalsRows,'Summary',()=> 'all',()=> 'Summary')[0]:makeRow(filtered,'Filtered','Filtered','');
   const allDistricts=new Set(hierarchy.filter(r=>r.level==='District'&&!r.wing).map(r=>r.district||r.name));
   $('kDistrict').textContent=n(d?1:(w?new Set(hierarchy.filter(r=>r.level==='District'&&r.wing===w).map(r=>r.district||r.name)).size:allDistricts.size));
   $('kSchools').textContent=n(schoolId?1:(m?filtered.filter(s=>s.markaz===m).length:(d?filtered.length:(meta.school_count||0))));
