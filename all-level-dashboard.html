@@ -208,7 +208,24 @@ header{padding:14px 20px}
  .card{box-shadow:none!important;background:#fff!important;border-radius:5px!important}
 }
 
-</style></head><body><header><div class="headrow"><div class="headmain"><h1>SED Punjab 2026 Enrollment Dashboard</h1><div class="byline">Dashboard developed by M.Sajid AEO Markaz Amli Moti (W), Tehsil Depalpur, District Okara</div><div class="stamp" id="stamp">Loading latest report date…</div><div id="dashboardDisclaimer" style="max-width:1000px;margin:8px auto 0;padding:7px 12px;border:1px solid #e1e7ef;border-radius:8px;background:#f8fafc;color:#52657a;font-size:11px;line-height:1.45;text-align:center">Disclaimer: This dashboard is for informational and monitoring purposes only. Please verify the displayed data through the official SIS portal before making any official decision.</div></div><a class="channel" href="https://www.youtube.com/@SajidEducationalhelper" target="_blank" rel="noopener noreferrer" aria-label="Subscribe to M.Sajid the Educational Helper on YouTube"><span class="yticon">▶</span><span><strong>Subscribe to M.Sajid the Educational Helper</strong><small>Get latest video tutorials about SED Punjab Apps</small></span></a></div></header><main><section class="cards"><div class="card"><div class="label">DISTRICTS</div><div class="value" id="kDistrict">—</div></div><div class="card"><div class="label">SCHOOLS</div><div class="value" id="kSchools">—</div></div><div class="card"><div class="label">BASELINE 2026</div><div class="value" id="kBase">—</div></div><div class="card"><div class="label">TARGET 2026</div><div class="value" id="kTarget">—</div></div><div class="card"><div class="label">EXPECTED ENROLLMENT 2026</div><div class="value" id="kExpected">—</div></div><div class="card"><div class="label">CURRENT ENROLLMENT 2026</div><div class="value" id="kCurrent">—</div></div><div class="card"><div class="label">REMAINING 2026 TARGET</div><div class="value" id="kRemaining">—</div></div><div class="card"><div class="label">2026 TARGET PROGRESS</div><div class="value" id="kProgress">—</div></div></section><section class="filters"><select id="level"><option value="Punjab">Punjab / Districts</option><option value="Wing">Wing-wise</option><option value="District">District-wise</option><option value="Tehsil">Tehsil-wise</option><option value="Markaz">Markaz-wise</option></select><select id="wing"><option value="">All Wings</option></select><select id="district"><option value="">All Districts</option></select><select id="tehsil"><option value="">All Tehsils</option></select><select id="markaz"><option value="">All Markazs</option></select><select id="school" disabled><option value="">Select Markaz first, then School</option></select><input id="search" type="search" placeholder="Search school / EMIS / name"><button class="btn filter-reset" id="reset">Reset</button><button class="btn csv" id="download">Download Excel (CSV)</button><button class="btn" id="pdf">Download PDF</button></section><div class="tablebox"><table><thead><tr><th>#</th><th>Report / School</th><th>Baseline 2026</th><th>Target 2026</th><th>Expected Enrollment 2026</th><th>Current Enrollment 2026</th><th>Remaining 2026 Target</th><th aria-sort="descending" title="Automatically sorted from highest to lowest">2026 Target Progress ↓</th></tr></thead><tbody id="rows"><tr><td colspan="8" style="text-align:center;padding:30px">Waiting for the all-level SIS data file.</td></tr></tbody></table></div></main><script>
+
+/* Requested final sizing and aligned header/link treatment */
+.byline{font-size:12px;line-height:1.5;text-align:center}
+.byline a{display:inline-block;margin-left:5px}
+.cards{gap:8px}
+.card{min-height:76px!important;padding:8px 5px!important;border-radius:9px!important}
+.card .label{min-height:25px;font-size:9px!important;line-height:1.15!important}
+.card .value{min-height:22px;font-size:clamp(13px,1.05vw,18px)!important;margin-top:3px!important}
+@media(min-width:651px) and (max-width:1100px){.card{min-height:72px!important}.card .label{font-size:9px!important}}
+@media(max-width:650px){
+ .byline{font-size:10px!important;line-height:1.4!important}
+ .byline a{margin-left:0;white-space:normal!important}
+ .card{min-height:48px!important;padding:4px 2px!important}
+ .card .label{min-height:19px;font-size:7px!important}
+ .card .value{min-height:18px;font-size:clamp(9px,2.5vw,12px)!important;margin-top:2px!important}
+}
+
+</style></head><body><header><div class="headrow"><div class="headmain"><h1>SED Punjab 2026 Enrollment Dashboard</h1><div class="byline">Dashboard developed by M.Sajid AEO Markaz Amli Moti (W), Tehsil Depalpur, District Okara · <a href="https://www.youtube.com/@SajidEducationalhelper" target="_blank" rel="noopener noreferrer" style="color:#b91c1c;font-weight:700;text-decoration:none;white-space:nowrap">▶ YouTube: Sajid The Educational Helper</a></div><div class="stamp" id="stamp">Loading latest report date…</div><div id="dashboardDisclaimer" style="max-width:1000px;margin:8px auto 0;padding:7px 12px;border:1px solid #e1e7ef;border-radius:8px;background:#f8fafc;color:#52657a;font-size:11px;line-height:1.45;text-align:center">Disclaimer: This dashboard is for informational and monitoring purposes only. Please verify the displayed data through the official SIS portal before making any official decision.</div></div><a class="channel" href="https://www.youtube.com/@SajidEducationalhelper" target="_blank" rel="noopener noreferrer" aria-label="Subscribe to M.Sajid the Educational Helper on YouTube"><span class="yticon">▶</span><span><strong>Subscribe to M.Sajid the Educational Helper</strong><small>Get latest video tutorials about SED Punjab Apps</small></span></a></div></header><main><section class="cards"><div class="card"><div class="label">DISTRICTS</div><div class="value" id="kDistrict">—</div></div><div class="card"><div class="label">SCHOOLS</div><div class="value" id="kSchools">—</div></div><div class="card"><div class="label">BASELINE 2026</div><div class="value" id="kBase">—</div></div><div class="card"><div class="label">TARGET 2026</div><div class="value" id="kTarget">—</div></div><div class="card"><div class="label">EXPECTED ENROLLMENT 2026</div><div class="value" id="kExpected">—</div></div><div class="card"><div class="label">CURRENT ENROLLMENT 2026</div><div class="value" id="kCurrent">—</div></div><div class="card"><div class="label">REMAINING 2026 TARGET</div><div class="value" id="kRemaining">—</div></div><div class="card"><div class="label">2026 TARGET PROGRESS</div><div class="value" id="kProgress">—</div></div></section><section class="filters"><select id="level"><option value="Punjab">Punjab / Districts</option><option value="Wing">Wing-wise</option><option value="District">District-wise</option><option value="Tehsil">Tehsil-wise</option><option value="Markaz">Markaz-wise</option></select><select id="wing"><option value="">All Wings</option></select><select id="district"><option value="">All Districts</option></select><select id="tehsil"><option value="">All Tehsils</option></select><select id="markaz"><option value="">All Markazs</option></select><select id="school" disabled><option value="">Select Markaz first, then School</option></select><input id="search" type="search" placeholder="Search school / EMIS / name"><button class="btn filter-reset" id="reset">Reset</button><button class="btn csv" id="download">Download Excel (CSV)</button><button class="btn" id="pdf">Download PDF</button></section><div class="tablebox"><table><thead><tr><th>#</th><th>Report / School</th><th>Baseline 2026</th><th>Target 2026</th><th>Expected Enrollment 2026</th><th>Current Enrollment 2026</th><th>Remaining 2026 Target</th><th aria-sort="descending" title="Automatically sorted from highest to lowest">2026 Target Progress ↓</th></tr></thead><tbody id="rows"><tr><td colspan="8" style="text-align:center;padding:30px">Waiting for the all-level SIS data file.</td></tr></tbody></table></div></main><script>
 const $=id=>document.getElementById(id);
 const n=v=>Number(v||0).toLocaleString('en-US');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -249,37 +266,106 @@ function makeRow(items,level,name,wing=''){
     school_count:level==='School'?1:subset.length,baseline,target,expected,current,remaining,
     progress_pct:target?(target-remaining)/target*100:0};
 }
+function hierarchyRows(level, filters={}) {
+  const {district='',tehsil='',markaz='',wing=''}=filters;
+  return hierarchy.filter(r=>{
+    if(r.level!==level)return false;
+    if(district && (r.district||r.name)!==district)return false;
+    if(tehsil && (r.tehsil||r.name)!==tehsil)return false;
+    if(markaz && (r.markaz||r.name)!==markaz)return false;
+    if(wing ? r.wing!==wing : !!r.wing)return false;
+    return true;
+  });
+}
+function aggregateRows(items,level,keyFn,labelFn){
+  const groups=new Map();
+  items.forEach(item=>{
+    const key=keyFn(item);
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(item);
+  });
+  return [...groups.entries()].map(([key,group])=>{
+    const first=group[0],baseline=group.reduce((a,x)=>a+(+x.baseline||0),0);
+    const target=group.reduce((a,x)=>a+(+x.target||0),0);
+    const expected=group.reduce((a,x)=>a+(+x.expected||((+x.baseline||0)+(+x.target||0))),0);
+    const current=group.reduce((a,x)=>a+(+x.current||0),0);
+    const remaining=expected-current;
+    return {level,name:labelFn(first),district:first.district||'',tehsil:first.tehsil||'',markaz:first.markaz||'',wing:first.wing||'',
+      school_count:group.reduce((a,x)=>a+(+x.school_count||0),0),baseline,target,expected,current,remaining,
+      progress_pct:target?(target-remaining)/target*100:0};
+  });
+}
 function rowsNow(){
-  const level=$('level').value,items=filteredSchools(),wing=$('wing').value,d=$('district').value,t=$('tehsil').value,m=$('markaz').value;
-  if(level==='Wing'){
-    const wings=wing?[wing]:[...new Set(hierarchy.filter(r=>r.level==='Wing').map(r=>r.name))];
-    return wings.map(w=>hierarchy.find(r=>r.level==='Wing'&&r.name===w)).filter(Boolean);
-  }
-  if($('school').value){
-    const selected=items.find(s=>String(s.emis||'')===$('school').value);
+  const level=$('level').value,items=filteredSchools(),wing=$('wing').value,d=$('district').value,t=$('tehsil').value,m=$('markaz').value,schoolId=$('school').value;
+  if(schoolId){
+    const selected=items.find(s=>String(s.emis||'')===schoolId);
     return selected?[makeRow([selected],'School',(selected.school||'Unnamed School')+(selected.emis?' · '+selected.emis:''),selected.wing)]:[];
   }
-  if(!d)return hierarchy.filter(r=>r.level==='District'&&!r.wing).sort((a,b)=>b.current-a.current);
-  if(level==='District')return hierarchy.filter(r=>r.level==='District'&&r.district===d&&(!wing||r.wing===wing));
-  if(level==='Tehsil')return [...new Map(hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&(!t||r.tehsil===t)&&(!wing||r.wing===wing)).map(r=>[r.name+'|'+(r.wing||''),r])).values()];
-  if(level==='Markaz')return hierarchy.filter(r=>r.level==='Markaz'&&r.district===d&&(!t||r.tehsil===t)&&(!m||r.markaz===m)&&(!wing||r.wing===wing));
+  // A selected Markaz always expands to all of its schools, regardless of the chosen report level.
   if(m)return items.filter(s=>s.markaz===m).map(s=>makeRow([s],'School',(s.school||'Unnamed School')+(s.emis?' · '+s.emis:''),s.wing));
-  if(t)return hierarchy.filter(r=>r.level==='Markaz'&&r.district===d&&r.tehsil===t&&(!wing||r.wing===wing));
-  return [...new Map(hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&(!wing||r.wing===wing)).map(r=>[r.name+'|'+(r.wing||''),r])).values()];
+  // For a selected tehsil/district, calculate totals from the selected scope, so summary and table use the same filters.
+  if(d && (t || level==='Tehsil' || level==='Markaz')){
+    const source=hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&(!t||r.tehsil===t)&& (wing?r.wing===wing:!r.wing));
+    if(level==='Markaz'){
+      const markazRows=hierarchy.filter(r=>r.level==='Markaz'&&r.district===d&&(!t||r.tehsil===t)&&(wing?r.wing===wing:!r.wing));
+      return markazRows;
+    }
+    if(t){
+      const tehsilRows=hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&r.tehsil===t&&(wing?r.wing===wing:!r.wing));
+      if(tehsilRows.length)return aggregateRows(tehsilRows,'Tehsil',r=>r.tehsil||r.name,r=>r.tehsil||r.name);
+    }
+    if(source.length)return aggregateRows(source,'Tehsil',r=>r.tehsil||r.name,r=>r.tehsil||r.name);
+  }
+  if(d){
+    if(level==='District'){
+      const rows=hierarchy.filter(r=>r.level==='District'&&r.district===d&&(wing?r.wing===wing:!r.wing));
+      return rows.length?aggregateRows(rows,'District',r=>r.district||r.name,r=>r.district||r.name):[];
+    }
+    if(level==='Wing'){
+      return hierarchy.filter(r=>r.level==='Wing'&&r.name===wing);
+    }
+    if(level==='Markaz'){
+      return hierarchy.filter(r=>r.level==='Markaz'&&r.district===d&&(wing?r.wing===wing:!r.wing));
+    }
+    const rows=hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&(wing?r.wing===wing:!r.wing));
+    return aggregateRows(rows,'Tehsil',r=>r.tehsil||r.name,r=>r.tehsil||r.name);
+  }
+  if(level==='Wing'){
+    const rows=hierarchy.filter(r=>r.level==='Wing'&&(!wing||r.name===wing));
+    return rows;
+  }
+  if(level==='Tehsil'){
+    const rows=hierarchy.filter(r=>r.level==='Tehsil'&&(wing?r.wing===wing:!r.wing));
+    return aggregateRows(rows,'Tehsil',r=>(r.district||'')+'|'+(r.tehsil||r.name),r=>(r.tehsil||r.name));
+  }
+  if(level==='Markaz'){
+    return hierarchy.filter(r=>r.level==='Markaz'&&(wing?r.wing===wing:!r.wing));
+  }
+  return hierarchy.filter(r=>r.level==='District'&&(wing?r.wing===wing:!r.wing)).sort((a,b)=>(Number(b.progress_pct)||0)-(Number(a.progress_pct)||0));
 }
 function progressSortedRows(){return rowsNow().slice().sort((a,b)=>(Number(b.progress_pct)||0)-(Number(a.progress_pct)||0));}
 function render(){
-  const rs=progressSortedRows(),filtered=filteredSchools(),d=$('district').value,t=$('tehsil').value,m=$('markaz').value,w=$('wing').value;
-  const selectedSchool=filtered.find(s=>String(s.emis||'')===$('school').value);
-  const exact=(selectedSchool?makeRow([selectedSchool],'School',selectedSchool.school||'Selected School',selectedSchool.wing):null)
-    ||hierarchy.find(r=>r.level==='Markaz'&&r.district===d&&r.tehsil===t&&r.markaz===m&&(!w||r.wing===w))
-    ||hierarchy.find(r=>r.level==='Tehsil'&&r.district===d&&r.tehsil===t&&(!w||r.wing===w))
-    ||hierarchy.find(r=>r.level==='District'&&r.district===d&&(!w||r.wing===w))
-    ||(!d&&!w?hierarchy.find(r=>r.level==='Punjab'):null)
-    ||(!d&&w?hierarchy.find(r=>r.level==='Wing'&&r.name===w):null);
-  const totals=exact||makeRow(filtered,'Filtered','Filtered','');
-  $('kDistrict').textContent=n(d?1:new Set(hierarchy.filter(r=>r.level==='District'&&!r.wing).map(r=>r.district)).size);
-  $('kSchools').textContent=n(exact?.school_count??(d?filtered.length:meta.school_count||0));
+  const rs=progressSortedRows(),filtered=filteredSchools(),d=$('district').value,t=$('tehsil').value,m=$('markaz').value,w=$('wing').value,schoolId=$('school').value;
+  let totalsRows=[];
+  if(schoolId){
+    const s=filtered.find(x=>String(x.emis||'')===schoolId);if(s)totalsRows=[makeRow([s],'School',s.school||'Selected School',s.wing)];
+  }else if(m){
+    totalsRows=[makeRow(filtered.filter(s=>s.markaz===m),'Markaz',m,w)];
+  }else if(t){
+    const rows=hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&r.tehsil===t&&(w?r.wing===w:!r.wing));
+    totalsRows=rows.length?aggregateRows(rows,'Tehsil',r=>r.tehsil||r.name,r=>r.tehsil||r.name):[];
+  }else if(d){
+    const rows=hierarchy.filter(r=>r.level==='District'&&r.district===d&&(w?r.wing===w:!r.wing));
+    totalsRows=rows.length?aggregateRows(rows,'District',r=>r.district||r.name,r=>r.district||r.name):[];
+  }else if(w){
+    totalsRows=hierarchy.filter(r=>r.level==='Wing'&&r.name===w);
+  }else{
+    totalsRows=hierarchy.filter(r=>r.level==='Punjab'&&!r.wing);
+  }
+  let totals=totalsRows.length?aggregateRows(totalsRows,'Summary',()=> 'all','Summary')[0]:makeRow(filtered,'Filtered','Filtered','');
+  const allDistricts=new Set(hierarchy.filter(r=>r.level==='District'&&!r.wing).map(r=>r.district||r.name));
+  $('kDistrict').textContent=n(d?1:(w?new Set(hierarchy.filter(r=>r.level==='District'&&r.wing===w).map(r=>r.district||r.name)).size:allDistricts.size));
+  $('kSchools').textContent=n(schoolId?1:(m?filtered.filter(s=>s.markaz===m).length:(d?filtered.length:(meta.school_count||0))));
   $('kBase').textContent=n(totals.baseline);$('kTarget').textContent=n(totals.target);$('kExpected').textContent=n(totals.expected);$('kCurrent').textContent=n(totals.current);$('kRemaining').textContent=n(totals.remaining);
   $('kProgress').textContent=(totals.target?(totals.current-totals.baseline)/totals.target*100:0).toFixed(1)+'%';
   $('rows').innerHTML=rs.map((r,i)=>'<tr><td>'+(i+1)+'</td><td class="name">'+esc(r.name)+'</td><td>'+n(r.baseline)+'</td><td>'+n(r.target)+'</td><td>'+n(r.expected)+'</td><td><b>'+n(r.current)+'</b></td><td class="'+(r.remaining<=0?'good':'bad')+'">'+n(r.remaining)+'</td><td>'+Number(r.progress_pct||0).toFixed(1)+'%</td></tr>').join('')||'<tr><td colspan="8" style="text-align:center;padding:24px">No records match the selected filters.</td></tr>';
