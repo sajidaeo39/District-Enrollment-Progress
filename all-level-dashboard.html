@@ -307,16 +307,20 @@ function rowsNow(){
   if(d||t){
     const grouped=new Map();
     items.forEach(s=>{
-      let key,label;
-      if(level==='District'){key=s.district||d;label=s.district||d;}
-      else if(level==='Tehsil'){key=s.tehsil||'Unknown';label=s.tehsil||'Unknown';}
-      else if(level==='Wing'){key=s.wing||'Unclassified';label=s.wing||'Unclassified';}
-      else if(level==='Markaz'){key=(s.markaz||'Unknown')+'|'+(s.wing||'');label=s.markaz||'Unknown';}
-      else {key=s.district||d;label=s.district||d;}
-      if(!grouped.has(key))grouped.set(key,{label,rows:[]});
+      let key,label,rowLevel;
+      // When a district or tehsil is selected, show its wing breakdown by default
+      // at Punjab/District/Tehsil summary levels; explicit Markaz view remains Markaz-wise.
+      if(level==='Markaz'){
+        key=(s.markaz||'Unknown')+'|'+(s.wing||'');label=s.markaz||'Unknown';rowLevel='Markaz';
+      }else if(level==='Wing'||level==='Punjab'||level==='District'||level==='Tehsil'){
+        key=s.wing||'Unclassified';label=s.wing||'Unclassified';rowLevel='Wing';
+      }else{
+        key=s.district||d;label=s.district||d;rowLevel=level;
+      }
+      if(!grouped.has(key))grouped.set(key,{label,rows:[],rowLevel});
       grouped.get(key).rows.push(s);
     });
-    return [...grouped.values()].map(g=>makeRow(g.rows,level,g.label,wing));
+    return [...grouped.values()].map(g=>makeRow(g.rows,g.rowLevel,g.label,g.rowLevel==='Wing'?g.label:wing));
   }
   if(level==='Wing'&&wing){
     const subset=items.filter(s=>sameText(s.wing,wing));
