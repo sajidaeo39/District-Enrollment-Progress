@@ -353,7 +353,7 @@ function render(){
   $('rows').innerHTML=rs.map((r,i)=>'<tr><td>'+(i+1)+'</td><td class="name">'+esc(r.name)+'</td><td>'+n(r.baseline)+'</td><td>'+n(r.target)+'</td><td>'+n(r.expected)+'</td><td><b>'+n(r.current)+'</b></td><td class="'+(r.remaining<=0?'good':'bad')+'">'+n(r.remaining)+'</td><td>'+Number(r.progress_pct||0).toFixed(1)+'%</td></tr>').join('')||'<tr><td colspan="8" style="text-align:center;padding:24px">No records match the selected filters.</td></tr>';
 }
 async function load(){
-  const hr=await fetch('data/punjab_summary.json?build=20261010e',{cache:'no-store'});
+  const hr=await fetch('data/punjab_summary.json?build=20261011a',{cache:'no-store'});
   if(!hr.ok)throw Error('SIS summary failed to load (HTTP '+hr.status+'). Refresh and retry.');
   const summary=await hr.json();meta=summary;hierarchy=summary.summary||[];
   const districts=summary.options?.districts||[...new Set(hierarchy.filter(x=>x.level==='District'&&!x.wing).map(x=>x.name))];
