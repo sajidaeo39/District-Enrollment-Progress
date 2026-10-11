@@ -331,6 +331,11 @@ function rowsNow(){
   if(level==='Wing')return hierarchy.filter(r=>r.level==='Wing');
   return hierarchy.filter(r=>r.level==='District'&&!r.wing).sort((a,b)=>(Number(b.progress_pct)||0)-(Number(a.progress_pct)||0));
 }
+function progressSortedRows(){
+  // Keep the dashboard, CSV export and PDF aligned: highest progress first.
+  return rowsNow().sort((a,b)=>(Number(b.progress_pct)||0)-(Number(a.progress_pct)||0));
+}
+
 function render(){
   const rs=progressSortedRows(),filtered=filteredSchools(),d=$('district').value,t=$('tehsil').value,m=$('markaz').value,w=$('wing').value,schoolId=$('school').value;
   let totalsRows=[];
