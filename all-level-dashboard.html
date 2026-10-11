@@ -247,10 +247,11 @@ function fillSelect(id,values,label){
   e.innerHTML='<option value="">'+label+'</option>'+[...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b)).map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');
   if([...e.options].some(o=>o.value===old))e.value=old;
 }
+function sameText(a,b){return String(a??'').trim().toLocaleLowerCase()===String(b??'').trim().toLocaleLowerCase();}
 function filteredSchools(){
   const district=$('district').value,tehsil=$('tehsil').value,markaz=$('markaz').value,school=$('school').value;
   const q=$('search').value.trim().toLowerCase(),wing=$('wing').value;
-  return schools.filter(s=>(!district||s.district===district)&&(!wing||s.wing===wing)&&(!tehsil||s.tehsil===tehsil)&&(!markaz||s.markaz===markaz)&&(!school||String(s.emis||'')===school)&&(!q||[s.school,s.emis,s.district,s.tehsil,s.markaz,s.wing].join(' ').toLowerCase().includes(q)));
+  return schools.filter(s=>(!district||sameText(s.district,district))&&(!wing||sameText(s.wing,wing))&&(!tehsil||sameText(s.tehsil,tehsil))&&(!markaz||sameText(s.markaz,markaz))&&(!school||String(s.emis||'')===school)&&(!q||[s.school,s.emis,s.district,s.tehsil,s.markaz,s.wing].join(' ').toLowerCase().includes(q)));
 }
 function metrics(s,wing){
   // Wing classification is based on the Markaz/school's assigned wing;
@@ -301,55 +302,31 @@ function aggregateRows(items,level,keyFn,labelFn){
 }
 function rowsNow(){
   const level=$('level').value,items=filteredSchools(),wing=$('wing').value,d=$('district').value,t=$('tehsil').value,m=$('markaz').value,schoolId=$('school').value;
-  // Search must affect the displayed rows too, not only the loaded school filter.
-  if($('search').value.trim()) return items.map(s=>makeRow([s],'School',(s.school||'Unnamed School')+(s.emis?' · '+s.emis:''),s.wing));
-  if(schoolId){
-    const selected=items.find(s=>String(s.emis||'')===schoolId);
-    return selected?[makeRow([selected],'School',(selected.school||'Unnamed School')+(selected.emis?' · '+selected.emis:''),selected.wing)]:[];
+  const schoolRows=arr=>arr.map(s=>makeRow([s],'School',(s.school||'Unnamed School')+(s.emis?' · '+s.emis:''),s.wing));
+  if($('search').value.trim()||schoolId||m||level==='School') return schoolRows(items);
+  if(d||t){
+    const grouped=new Map();
+    items.forEach(s=>{
+      let key,label;
+      if(level==='District'){key=s.district||d;label=s.district||d;}
+      else if(level==='Tehsil'){key=s.tehsil||'Unknown';label=s.tehsil||'Unknown';}
+      else if(level==='Wing'){key=s.wing||'Unclassified';label=s.wing||'Unclassified';}
+      else if(level==='Markaz'){key=(s.markaz||'Unknown')+'|'+(s.wing||'');label=s.markaz||'Unknown';}
+      else {key=s.district||d;label=s.district||d;}
+      if(!grouped.has(key))grouped.set(key,{label,rows:[]});
+      grouped.get(key).rows.push(s);
+    });
+    return [...grouped.values()].map(g=>makeRow(g.rows,level,g.label,wing));
   }
-  // A selected Markaz always expands to all of its schools, regardless of the chosen report level.
-  if(m)return items.filter(s=>s.markaz===m).map(s=>makeRow([s],'School',(s.school||'Unnamed School')+(s.emis?' · '+s.emis:''),s.wing));
-  // For a selected tehsil/district, calculate totals from the selected scope, so summary and table use the same filters.
-  if(d && (t || level==='Tehsil' || level==='Markaz')){
-    const source=hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&(!t||r.tehsil===t)&& (wing?r.wing===wing:!r.wing));
-    if(level==='Markaz'){
-      const markazRows=hierarchy.filter(r=>r.level==='Markaz'&&r.district===d&&(!t||r.tehsil===t)&&(wing?r.wing===wing:!r.wing));
-      return markazRows;
-    }
-    if(t){
-      const tehsilRows=hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&r.tehsil===t&&(wing?r.wing===wing:!r.wing));
-      if(tehsilRows.length)return aggregateRows(tehsilRows,'Tehsil',r=>r.tehsil||r.name,r=>r.tehsil||r.name);
-    }
-    if(source.length)return aggregateRows(source,'Tehsil',r=>r.tehsil||r.name,r=>r.tehsil||r.name);
+  if(level==='Wing'&&wing){
+    const subset=items.filter(s=>sameText(s.wing,wing));
+    return subset.length?[makeRow(subset,'Wing',wing,wing)]:[];
   }
-  if(d){
-    if(level==='District'){
-      const rows=hierarchy.filter(r=>r.level==='District'&&r.district===d&&(wing?r.wing===wing:!r.wing));
-      return rows.length?aggregateRows(rows,'District',r=>r.district||r.name,r=>r.district||r.name):[];
-    }
-    if(level==='Wing'){
-      return hierarchy.filter(r=>r.level==='Wing'&&r.name===wing);
-    }
-    if(level==='Markaz'){
-      return hierarchy.filter(r=>r.level==='Markaz'&&r.district===d&&(wing?r.wing===wing:!r.wing));
-    }
-    const rows=hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&(wing?r.wing===wing:!r.wing));
-    return aggregateRows(rows,'Tehsil',r=>r.tehsil||r.name,r=>r.tehsil||r.name);
-  }
-  if(level==='Wing'){
-    const rows=hierarchy.filter(r=>r.level==='Wing'&&(!wing||r.name===wing));
-    return rows;
-  }
-  if(level==='Tehsil'){
-    const rows=hierarchy.filter(r=>r.level==='Tehsil'&&(wing?r.wing===wing:!r.wing));
-    return aggregateRows(rows,'Tehsil',r=>(r.district||'')+'|'+(r.tehsil||r.name),r=>(r.tehsil||r.name));
-  }
-  if(level==='Markaz'){
-    return hierarchy.filter(r=>r.level==='Markaz'&&(wing?r.wing===wing:!r.wing));
-  }
-  return hierarchy.filter(r=>r.level==='District'&&(wing?r.wing===wing:!r.wing)).sort((a,b)=>(Number(b.progress_pct)||0)-(Number(a.progress_pct)||0));
+  if(level==='Tehsil')return hierarchy.filter(r=>r.level==='Tehsil'&&!r.wing);
+  if(level==='Markaz')return hierarchy.filter(r=>r.level==='Markaz'&&!r.wing);
+  if(level==='Wing')return hierarchy.filter(r=>r.level==='Wing');
+  return hierarchy.filter(r=>r.level==='District'&&!r.wing).sort((a,b)=>(Number(b.progress_pct)||0)-(Number(a.progress_pct)||0));
 }
-function progressSortedRows(){return rowsNow().slice().sort((a,b)=>(Number(b.progress_pct)||0)-(Number(a.progress_pct)||0));}
 function render(){
   const rs=progressSortedRows(),filtered=filteredSchools(),d=$('district').value,t=$('tehsil').value,m=$('markaz').value,w=$('wing').value,schoolId=$('school').value;
   let totalsRows=[];
@@ -359,14 +336,11 @@ function render(){
     const s=filtered.find(x=>String(x.emis||'')===schoolId);if(s)totalsRows=[makeRow([s],'School',s.school||'Selected School',s.wing)];
   }else if(m){
     totalsRows=[makeRow(filtered.filter(s=>s.markaz===m),'Markaz',m,w)];
-  }else if(t){
-    const rows=hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&r.tehsil===t&&(w?r.wing===w:!r.wing));
-    totalsRows=rows.length?aggregateRows(rows,'Tehsil',r=>r.tehsil||r.name,r=>r.tehsil||r.name):[];
-  }else if(d){
-    const rows=hierarchy.filter(r=>r.level==='District'&&r.district===d&&(w?r.wing===w:!r.wing));
-    totalsRows=rows.length?aggregateRows(rows,'District',r=>r.district||r.name,r=>r.district||r.name):[];
+  }else if(d||t){
+    totalsRows=filtered.length?[makeRow(filtered,'Filtered Scope',t||d||w||'Selected Scope',w)]:[];
   }else if(w){
-    totalsRows=hierarchy.filter(r=>r.level==='Wing'&&r.name===w);
+    const wingRows=hierarchy.filter(r=>r.level==='Wing'&&sameText(r.name,w));
+    totalsRows=wingRows;
   }else{
     totalsRows=hierarchy.filter(r=>r.level==='Punjab'&&!r.wing);
   }
@@ -412,10 +386,10 @@ async function refreshHierarchy(){
   }
   try{
     await ensureDistrictLoaded(d);
-    const w=$('wing').value,all=schools.filter(s=>s.district===d&&(!w||s.wing===w));
+    const w=$('wing').value,all=schools.filter(s=>sameText(s.district,d)&&(!w||sameText(s.wing,w)));
     fillSelect('tehsil',all.map(s=>s.tehsil),'All Tehsils');
     const t=$('tehsil').value;
-    fillSelect('markaz',all.filter(s=>!t||s.tehsil===t).map(s=>s.markaz),'All Markazs');
+    fillSelect('markaz',all.filter(s=>!t||sameText(s.tehsil,t)).map(s=>s.markaz),'All Markazs');
     refreshSchoolOptions();render();
     const stamp=new Date(meta.updated_at);
     $('stamp').textContent='Latest Report '+stamp.toLocaleString('en-GB',{timeZone:'Asia/Karachi',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true})+' PK · Pakistan time';
@@ -423,10 +397,10 @@ async function refreshHierarchy(){
 }
 function refreshSchoolOptions(){
   const el=$('school'),markaz=$('markaz').value,items=schools.filter(s=>
-    (!$('wing').value||s.wing===$('wing').value)&&
-    (!$('district').value||s.district===$('district').value)&&
-    (!$('tehsil').value||s.tehsil===$('tehsil').value)&&
-    (!markaz||s.markaz===markaz)
+    (!$('wing').value||sameText(s.wing,$('wing').value))&&
+    (!$('district').value||sameText(s.district,$('district').value))&&
+    (!$('tehsil').value||sameText(s.tehsil,$('tehsil').value))&&
+    (!markaz||sameText(s.markaz,markaz))
   );
   const old=el.value;
   if(!markaz){
@@ -452,7 +426,7 @@ $('district').addEventListener('change',async()=>{
 $('tehsil').addEventListener('change',()=>{
   $('markaz').value='';$('school').value='';
   const d=$('district').value,w=$('wing').value,t=$('tehsil').value;
-  const all=schools.filter(s=>s.district===d&&(!w||s.wing===w)&&(!t||s.tehsil===t));
+  const all=schools.filter(s=>sameText(s.district,d)&&(!w||sameText(s.wing,w))&&(!t||sameText(s.tehsil,t)));
   fillSelect('markaz',all.map(s=>s.markaz),'All Markazs');
   refreshSchoolOptions();render();
 });
