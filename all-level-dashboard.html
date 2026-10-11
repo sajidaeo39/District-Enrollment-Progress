@@ -156,6 +156,58 @@ th[aria-sort="descending"]{white-space:nowrap}
 #dashboardDisclaimer{width:100%!important;max-width:none!important;margin:0 auto!important;box-sizing:border-box}
 .channel{height:62px;min-height:62px;max-width:238px;align-self:start;box-sizing:border-box}
 @media(max-width:650px){.channel{height:auto;min-height:34px;max-width:280px}.stamp{padding:5px 7px}}
+
+/* Final polish: align header information panels to the full KPI strip width */
+header{padding:14px 20px}
+.headrow{display:block!important;width:100%;max-width:1760px;margin:0 auto}
+.headmain{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:none}
+.headmain h1,.headmain .byline,.headmain .stamp,#dashboardDisclaimer{width:100%!important;max-width:none!important;box-sizing:border-box}
+.headmain h1{margin:0}
+.byline{margin-top:8px!important;text-align:center;line-height:1.4}
+.stamp{margin-top:7px!important}
+#dashboardDisclaimer{margin-top:7px!important}
+.channel{display:flex;width:max-content;max-width:100%;height:auto;min-height:0;margin:8px auto 0;align-self:auto;justify-content:center}
+@media(min-width:651px){
+  header{padding-left:20px;padding-right:20px}
+  .headrow{max-width:1760px}
+}
+/* Consistent, modern KPI cards with uniform label/value alignment */
+.cards{align-items:stretch;gap:10px}
+.card{display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;min-width:0;min-height:94px;padding:12px 8px;border:1px solid #d9e3ef;border-radius:12px;background:linear-gradient(180deg,#fff 0%,#f8fbff 100%);box-shadow:0 2px 7px rgba(23,52,95,.055);text-align:center}
+.card .label{display:flex;align-items:center;justify-content:center;min-height:30px;font-size:10px;line-height:1.25;letter-spacing:.25px;color:#607087}
+.card .value{display:flex;align-items:center;justify-content:center;flex:1;min-height:26px;margin-top:5px;font-size:clamp(15px,1.25vw,22px);line-height:1.15;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+@media(min-width:1101px){
+ .cards{grid-template-columns:repeat(8,minmax(0,1fr))}
+ .card{min-height:96px}
+}
+@media(min-width:651px) and (max-width:1100px){
+ .cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .card{min-height:88px}
+ .card .label{font-size:10px}
+}
+@media(max-width:650px){
+ header{padding:7px!important}
+ .headrow{width:100%;max-width:none}
+ .headmain h1{width:100%!important}
+ .byline,.stamp,#dashboardDisclaimer{width:100%!important}
+ .channel{width:100%;max-width:none;margin:6px 0 0;padding:7px 9px;justify-content:center}
+ .cards{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important}
+ .card{display:flex;min-height:58px!important;height:100%;padding:5px 2px!important;border-radius:8px!important}
+ .card .label{min-height:22px;font-size:clamp(7px,1.8vw,9px)!important;line-height:1.12!important}
+ .card .value{min-height:20px;font-size:clamp(10px,2.8vw,14px)!important;line-height:1.1!important;margin-top:3px!important}
+}
+@media(max-width:380px){
+ .card{min-height:54px!important}
+ .card .label{font-size:7px!important}
+ .card .value{font-size:10px!important}
+}
+@media print{
+ header{padding:5px!important}
+ .headrow{max-width:none!important}
+ .channel{display:none!important}
+ .card{box-shadow:none!important;background:#fff!important;border-radius:5px!important}
+}
+
 </style></head><body><header><div class="headrow"><div class="headmain"><h1>SED Punjab 2026 Enrollment Dashboard</h1><div class="byline">Dashboard developed by M.Sajid AEO Markaz Amli Moti (W), Tehsil Depalpur, District Okara</div><div class="stamp" id="stamp">Loading latest report date…</div><div id="dashboardDisclaimer" style="max-width:1000px;margin:8px auto 0;padding:7px 12px;border:1px solid #e1e7ef;border-radius:8px;background:#f8fafc;color:#52657a;font-size:11px;line-height:1.45;text-align:center">Disclaimer: This dashboard is for informational and monitoring purposes only. Please verify the displayed data through the official SIS portal before making any official decision.</div></div><a class="channel" href="https://www.youtube.com/@SajidEducationalhelper" target="_blank" rel="noopener noreferrer" aria-label="Subscribe to M.Sajid the Educational Helper on YouTube"><span class="yticon">▶</span><span><strong>Subscribe to M.Sajid the Educational Helper</strong><small>Get latest video tutorials about SED Punjab Apps</small></span></a></div></header><main><section class="cards"><div class="card"><div class="label">DISTRICTS</div><div class="value" id="kDistrict">—</div></div><div class="card"><div class="label">SCHOOLS</div><div class="value" id="kSchools">—</div></div><div class="card"><div class="label">BASELINE 2026</div><div class="value" id="kBase">—</div></div><div class="card"><div class="label">TARGET 2026</div><div class="value" id="kTarget">—</div></div><div class="card"><div class="label">EXPECTED ENROLLMENT 2026</div><div class="value" id="kExpected">—</div></div><div class="card"><div class="label">CURRENT ENROLLMENT 2026</div><div class="value" id="kCurrent">—</div></div><div class="card"><div class="label">REMAINING 2026 TARGET</div><div class="value" id="kRemaining">—</div></div><div class="card"><div class="label">2026 TARGET PROGRESS</div><div class="value" id="kProgress">—</div></div></section><section class="filters"><select id="level"><option value="Punjab">Punjab / Districts</option><option value="Wing">Wing-wise</option><option value="District">District-wise</option><option value="Tehsil">Tehsil-wise</option><option value="Markaz">Markaz-wise</option></select><select id="wing"><option value="">All Wings</option></select><select id="district"><option value="">All Districts</option></select><select id="tehsil"><option value="">All Tehsils</option></select><select id="markaz"><option value="">All Markazs</option></select><select id="school" disabled><option value="">Select Markaz first, then School</option></select><input id="search" type="search" placeholder="Search school / EMIS / name"><button class="btn filter-reset" id="reset">Reset</button><button class="btn csv" id="download">Download Excel (CSV)</button><button class="btn" id="pdf">Download PDF</button></section><div class="tablebox"><table><thead><tr><th>#</th><th>Report / School</th><th>Baseline 2026</th><th>Target 2026</th><th>Expected Enrollment 2026</th><th>Current Enrollment 2026</th><th>Remaining 2026 Target</th><th aria-sort="descending" title="Automatically sorted from highest to lowest">2026 Target Progress ↓</th></tr></thead><tbody id="rows"><tr><td colspan="8" style="text-align:center;padding:30px">Waiting for the all-level SIS data file.</td></tr></tbody></table></div></main><script>
 const $=id=>document.getElementById(id);
 const n=v=>Number(v||0).toLocaleString('en-US');
