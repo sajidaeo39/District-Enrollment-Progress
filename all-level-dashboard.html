@@ -146,6 +146,16 @@ th[aria-sort="descending"]{white-space:nowrap}
   #dashboardDisclaimer{display:block!important}
   h1{background:#fff!important}
 }
+
+/* Header alignment: channel card matches title panel; all subtitle rows share full width */
+.headrow{align-items:start!important;gap:10px!important}
+.headmain{width:100%;min-width:0}
+.headmain h1{width:100%}
+.byline{width:100%;margin-left:0;margin-right:0}
+.stamp{width:100%;padding:7px 10px;border:1px solid #e1e7ef;border-radius:8px;background:#fff;text-align:center;box-sizing:border-box}
+#dashboardDisclaimer{width:100%!important;max-width:none!important;margin:0 auto!important;box-sizing:border-box}
+.channel{height:62px;min-height:62px;max-width:238px;align-self:start;box-sizing:border-box}
+@media(max-width:650px){.channel{height:auto;min-height:34px;max-width:280px}.stamp{padding:5px 7px}}
 </style></head><body><header><div class="headrow"><div class="headmain"><h1>SED Punjab 2026 Enrollment Dashboard</h1><div class="byline">Dashboard developed by M.Sajid AEO Markaz Amli Moti (W), Tehsil Depalpur, District Okara</div><div class="stamp" id="stamp">Loading latest report date…</div><div id="dashboardDisclaimer" style="max-width:1000px;margin:8px auto 0;padding:7px 12px;border:1px solid #e1e7ef;border-radius:8px;background:#f8fafc;color:#52657a;font-size:11px;line-height:1.45;text-align:center">Disclaimer: This dashboard is for informational and monitoring purposes only. Please verify the displayed data through the official SIS portal before making any official decision.</div></div><a class="channel" href="https://www.youtube.com/@SajidEducationalhelper" target="_blank" rel="noopener noreferrer" aria-label="Subscribe to M.Sajid the Educational Helper on YouTube"><span class="yticon">▶</span><span><strong>Subscribe to M.Sajid the Educational Helper</strong><small>Get latest video tutorials about SED Punjab Apps</small></span></a></div></header><main><section class="cards"><div class="card"><div class="label">DISTRICTS</div><div class="value" id="kDistrict">—</div></div><div class="card"><div class="label">SCHOOLS</div><div class="value" id="kSchools">—</div></div><div class="card"><div class="label">BASELINE 2026</div><div class="value" id="kBase">—</div></div><div class="card"><div class="label">TARGET 2026</div><div class="value" id="kTarget">—</div></div><div class="card"><div class="label">EXPECTED ENROLLMENT 2026</div><div class="value" id="kExpected">—</div></div><div class="card"><div class="label">CURRENT ENROLLMENT 2026</div><div class="value" id="kCurrent">—</div></div><div class="card"><div class="label">REMAINING 2026 TARGET</div><div class="value" id="kRemaining">—</div></div><div class="card"><div class="label">2026 TARGET PROGRESS</div><div class="value" id="kProgress">—</div></div></section><section class="filters"><select id="level"><option value="Punjab">Punjab / Districts</option><option value="Wing">Wing-wise</option><option value="District">District-wise</option><option value="Tehsil">Tehsil-wise</option><option value="Markaz">Markaz-wise</option></select><select id="wing"><option value="">All Wings</option></select><select id="district"><option value="">All Districts</option></select><select id="tehsil"><option value="">All Tehsils</option></select><select id="markaz"><option value="">All Markazs</option></select><select id="school" disabled><option value="">Select Markaz first, then School</option></select><input id="search" type="search" placeholder="Search school / EMIS / name"><button class="btn filter-reset" id="reset">Reset</button><button class="btn csv" id="download">Download Excel (CSV)</button><button class="btn" id="pdf">Download PDF</button></section><div class="tablebox"><table><thead><tr><th>#</th><th>Report / School</th><th>Baseline 2026</th><th>Target 2026</th><th>Expected Enrollment 2026</th><th>Current Enrollment 2026</th><th>Remaining 2026 Target</th><th aria-sort="descending" title="Automatically sorted from highest to lowest">2026 Target Progress ↓</th></tr></thead><tbody id="rows"><tr><td colspan="8" style="text-align:center;padding:30px">Waiting for the all-level SIS data file.</td></tr></tbody></table></div></main><script>
 const $=id=>document.getElementById(id);
 const n=v=>Number(v||0).toLocaleString('en-US');
@@ -199,11 +209,11 @@ function rowsNow(){
   }
   if(!d)return hierarchy.filter(r=>r.level==='District'&&!r.wing).sort((a,b)=>b.current-a.current);
   if(level==='District')return hierarchy.filter(r=>r.level==='District'&&r.district===d&&(!wing||r.wing===wing));
-  if(level==='Tehsil')return hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&(!t||r.tehsil===t)&&(!wing||r.wing===wing));
+  if(level==='Tehsil')return [...new Map(hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&(!t||r.tehsil===t)&&(!wing||r.wing===wing)).map(r=>[r.name+'|'+(r.wing||''),r])).values()];
   if(level==='Markaz')return hierarchy.filter(r=>r.level==='Markaz'&&r.district===d&&(!t||r.tehsil===t)&&(!m||r.markaz===m)&&(!wing||r.wing===wing));
   if(m)return items.filter(s=>s.markaz===m).map(s=>makeRow([s],'School',(s.school||'Unnamed School')+(s.emis?' · '+s.emis:''),s.wing));
   if(t)return hierarchy.filter(r=>r.level==='Markaz'&&r.district===d&&r.tehsil===t&&(!wing||r.wing===wing));
-  return hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&(!wing||r.wing===wing));
+  return [...new Map(hierarchy.filter(r=>r.level==='Tehsil'&&r.district===d&&(!wing||r.wing===wing)).map(r=>[r.name+'|'+(r.wing||''),r])).values()];
 }
 function progressSortedRows(){return rowsNow().slice().sort((a,b)=>(Number(b.progress_pct)||0)-(Number(a.progress_pct)||0));}
 function render(){
@@ -303,7 +313,41 @@ $('reset').addEventListener('click',()=>{
   $('wing').value='';$('district').value='';$('tehsil').value='';$('markaz').value='';$('school').value='';$('search').value='';
   $('level').value='Punjab';refreshHierarchy();
 });
-$('pdf').addEventListener('click',()=>window.print());
+$('pdf').addEventListener('click',async()=>{
+  const btn=$('pdf'),old=btn.textContent;btn.disabled=true;btn.textContent='Preparing PDF…';
+  try{
+    if(!window.html2pdf){
+      await new Promise((resolve,reject)=>{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';sc.onload=resolve;sc.onerror=()=>reject(Error('PDF library could not load. Please check your internet connection and retry.'));document.head.appendChild(sc);});
+    }
+    const clone=document.createElement('div');
+    clone.innerHTML='<h2 style="font-family:Arial;text-align:center;color:#17345f;margin:0 0 8px">SED Punjab 2026 Enrollment Dashboard</h2><p style="font:11px Arial;text-align:center;margin:0 0 8px">'+esc(pdfFilterTitle())+' · '+esc(new Date().toLocaleString('en-GB',{timeZone:'Asia/Karachi',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true}))+' PK</p>';
+    const summary=document.querySelector('.cards').cloneNode(true),table=document.querySelector('.tablebox').cloneNode(true);
+    clone.append(summary,table);clone.style.cssText='background:#fff;color:#172033;padding:12px;width:1100px;font-family:Arial,sans-serif';
+    clone.querySelectorAll('.tablebox').forEach(e=>{e.style.cssText='overflow:visible;border:0';});
+    clone.querySelectorAll('table').forEach(e=>{e.style.cssText='width:100%;min-width:0;border-collapse:collapse;font-size:9px';});
+    clone.querySelectorAll('th,td').forEach(e=>{e.style.cssText+=';white-space:normal;padding:5px;border:1px solid #dfe5ee';});
+    clone.querySelectorAll('th').forEach(e=>{e.style.position='static';e.style.background='#edf4fd';});
+    clone.querySelectorAll('.cards').forEach(e=>{e.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px';});
+    clone.querySelectorAll('.card').forEach(e=>{e.style.cssText+=';border:1px solid #dfe5ee;padding:7px;text-align:center;break-inside:avoid';});
+    document.body.appendChild(clone);
+    try{await window.html2pdf().set({margin:7,filename:pdfFileName(),image:{type:'jpeg',quality:.96},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'},pagebreak:{mode:['css','legacy']}}).from(clone).save();}
+    finally{clone.remove();}
+  }catch(e){alert('PDF download failed: '+e.message);}
+  finally{btn.disabled=false;btn.textContent=old;}
+});
+function pdfFilterTitle(){
+ const parts=['Enrollment', $('level').selectedOptions[0]?.text||'All Levels'];
+ for(const id of ['wing','district','tehsil','markaz','school']){
+  const el=$(id);if(el&&el.value)parts.push(el.options[el.selectedIndex]?.text||el.value);
+ }
+ const q=$('search').value.trim();if(q)parts.push(q);
+ return parts.join(' - ');
+}
+function pdfFileName(){
+ const clean=pdfFilterTitle().replace(/[^a-z0-9 -]/gi,'').trim().replace(/\s+/g,'_').replace(/_+/g,'_');
+ const d=new Date(),date=d.toLocaleDateString('en-CA',{timeZone:'Asia/Karachi'}),time=d.toLocaleTimeString('en-GB',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit'}).replace(':','-');
+ return clean+'_'+date+'_'+time+'.pdf';
+}
 $('download').addEventListener('click',()=>{
   const rs=progressSortedRows(),cols=[['Report / School','name'],['Wing','wing'],['District','district'],['Tehsil','tehsil'],['Markaz','markaz'],['Baseline 2026','baseline'],['Target 2026','target'],['Expected Enrollment 2026','expected'],['Current Enrollment 2026','current'],['Remaining 2026 Target','remaining'],['2026 Target Progress','progress_pct']];
   const csv=[cols.map(c=>c[0]),...rs.map(r=>cols.map(c=>c[1]==='progress_pct'?r.progress_pct.toFixed(1)+'%':(r[c[1]]??'')))].map(row=>row.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\r\n');
