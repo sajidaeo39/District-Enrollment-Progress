@@ -531,7 +531,6 @@ $('pdf').addEventListener('click',async()=>{
         pdf.setDrawColor(220,228,238);pdf.setLineWidth(.3);pdf.line(margin,pageH-9,pageW-margin,pageH-9);
         pdf.setFont('helvetica','normal');pdf.setFontSize(7);pdf.setTextColor(102,112,133);
         pdf.text('For information and monitoring purposes only · Verify through official SIS portal.',margin,pageH-5);
-        pdf.text('Page '+p,pageW-margin,pageH-5,{align:'right'});
       }
     });
     // Add total page count after AutoTable has laid out all dynamic rows/pages.
