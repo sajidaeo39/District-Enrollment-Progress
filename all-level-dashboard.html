@@ -456,35 +456,72 @@ $('pdf').addEventListener('click',async()=>{
     if(!window.html2pdf){
       await new Promise((resolve,reject)=>{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';sc.onload=resolve;sc.onerror=()=>reject(Error('PDF library could not load. Please check your internet connection and retry.'));document.head.appendChild(sc);});
     }
-    const clone=document.createElement('div');
-    clone.innerHTML='<h2 style="font-family:Arial;text-align:center;color:#17345f;margin:0 0 8px">SED Punjab 2026 Enrollment Dashboard</h2><p style="font:11px Arial;text-align:center;margin:0 0 8px">'+esc(pdfFilterTitle())+' · '+esc(new Date().toLocaleString('en-GB',{timeZone:'Asia/Karachi',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true}))+' PK</p>';
-    const summary=document.querySelector('.cards').cloneNode(true),table=document.querySelector('.tablebox').cloneNode(true);
-    clone.append(summary,table);
-    // PDF-only layout: fixed A4-landscape canvas and explicitly sized columns prevent clipping.
-    clone.style.cssText='display:block;box-sizing:border-box;background:#fff;color:#172033;padding:8px;width:1060px;max-width:1060px;font-family:Arial,sans-serif;overflow:hidden';
-    clone.querySelectorAll('.tablebox').forEach(e=>{e.style.cssText='display:block;box-sizing:border-box;width:100%;max-width:100%;overflow:visible;border:0;margin:0';});
-    clone.querySelectorAll('table').forEach(e=>{
-      e.style.cssText='display:table;table-layout:fixed;width:100%;max-width:100%;min-width:0;border-collapse:collapse;font-size:8px;overflow-wrap:anywhere;word-break:normal';
-      const widths=['4%','23%','10%','9%','14%','14%','13%','13%'];
-      const rows=e.querySelectorAll('tr');
-      if(rows.length){
-        const colgroup=document.createElement('colgroup');
-        widths.forEach(w=>{const col=document.createElement('col');col.style.width=w;colgroup.appendChild(col);});
-        e.insertBefore(colgroup,e.firstChild);
+    // Build fixed-size PDF pages ourselves so no rows disappear when the report spans multiple pages.
+    // Every page gets its own report title, filter/date line, and repeated table column headings.
+    const sourceTable=document.querySelector('.tablebox table');
+    const sourceRows=Array.from(sourceTable.querySelectorAll('tbody tr'));
+    const perPage=12;
+    const totalPages=Math.max(1,Math.ceil(sourceRows.length/perPage));
+    const pdfRoot=document.createElement('div');
+    pdfRoot.style.cssText='display:block;box-sizing:border-box;width:1060px;max-width:1060px;background:#fff;color:#172033;font-family:Arial,sans-serif';
+    const summary=document.querySelector('.cards').cloneNode(true);
+    const stamp=esc(new Date().toLocaleString('en-GB',{timeZone:'Asia/Karachi',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true}));
+    for(let pageIndex=0;pageIndex<totalPages;pageIndex++){
+      const page=document.createElement('section');
+      page.className='pdf-page';
+      page.style.cssText='display:block;box-sizing:border-box;width:1060px;max-width:1060px;padding:8px;background:#fff;break-after:page;page-break-after:always;overflow:hidden';
+      const title=document.createElement('h2');
+      title.textContent='SED Punjab 2026 Enrollment Dashboard';
+      title.style.cssText='font: bold 18px Arial;text-align:center;color:#17345f;margin:0 0 5px;padding:0';
+      const subtitle=document.createElement('p');
+      subtitle.textContent=pdfFilterTitle()+' · '+stamp+' PK · Page '+(pageIndex+1)+' of '+totalPages;
+      subtitle.style.cssText='font:10px Arial;text-align:center;margin:0 0 7px;color:#334155;overflow-wrap:anywhere';
+      page.append(title,subtitle);
+      if(pageIndex===0){
+        const cards=summary.cloneNode(true);
+        cards.style.cssText='display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;gap:5px;margin:0 0 8px';
+        cards.querySelectorAll('.card').forEach(e=>{e.style.cssText='box-sizing:border-box;min-width:0;border:1px solid #dfe5ee;padding:5px;text-align:center;break-inside:avoid;overflow-wrap:anywhere;background:#fff'});
+        cards.querySelectorAll('.card .label').forEach(e=>{e.style.cssText='font:8px Arial;line-height:1.15;min-height:0;color:#52657a'});
+        cards.querySelectorAll('.card .value').forEach(e=>{e.style.cssText='font:bold 12px Arial;min-height:0;overflow-wrap:anywhere;margin-top:3px;color:#17345f'});
+        page.appendChild(cards);
       }
-    });
-    clone.querySelectorAll('th,td').forEach(e=>{
-      e.style.cssText+=';box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;word-break:normal;padding:4px 3px;border:1px solid #dfe5ee;line-height:1.2;vertical-align:top;text-align:right';
-    });
-    clone.querySelectorAll('th:first-child,td:first-child,th:nth-child(2),td:nth-child(2)').forEach(e=>{e.style.textAlign='left';});
-    clone.querySelectorAll('th').forEach(e=>{e.style.position='static';e.style.background='#edf4fd';e.style.fontSize='7.5px';});
-    clone.querySelectorAll('.cards').forEach(e=>{e.style.cssText='display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;gap:5px;margin:0 0 8px';});
-    clone.querySelectorAll('.card').forEach(e=>{e.style.cssText+=';box-sizing:border-box;min-width:0;border:1px solid #dfe5ee;padding:5px;text-align:center;break-inside:avoid;overflow-wrap:anywhere';});
-    clone.querySelectorAll('.card .label').forEach(e=>{e.style.cssText+=';font-size:8px;min-height:0;line-height:1.15';});
-    clone.querySelectorAll('.card .value').forEach(e=>{e.style.cssText+=';font-size:12px;min-height:0;overflow-wrap:anywhere;margin-top:3px';});
-    document.body.appendChild(clone);
-    try{await window.html2pdf().set({margin:7,filename:pdfFileName(),image:{type:'jpeg',quality:.96},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'},pagebreak:{mode:['css','legacy']}}).from(clone).save();}
-    finally{clone.remove();}
+      const table=document.createElement('table');
+      table.style.cssText='display:table;table-layout:fixed;width:100%;max-width:100%;min-width:0;border-collapse:collapse;font:8px Arial;overflow-wrap:anywhere;word-break:normal';
+      const widths=['4%','23%','10%','9%','14%','14%','13%','13%'];
+      const colgroup=document.createElement('colgroup');
+      widths.forEach(w=>{const col=document.createElement('col');col.style.width=w;colgroup.appendChild(col);});
+      table.appendChild(colgroup);
+      const thead=sourceTable.querySelector('thead').cloneNode(true);
+      thead.querySelectorAll('th').forEach(th=>{
+        th.style.cssText='box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;padding:5px 3px;border:1px solid #dfe5ee;line-height:1.2;vertical-align:top;background:#edf4fd;color:#17345f;font-size:7.5px;position:static;text-align:right';
+      });
+      thead.querySelectorAll('th:first-child,th:nth-child(2)').forEach(th=>th.style.textAlign='left');
+      table.appendChild(thead);
+      const tbody=document.createElement('tbody');
+      const pageRows=sourceRows.slice(pageIndex*perPage,(pageIndex+1)*perPage);
+      pageRows.forEach(sourceRow=>{
+        const row=sourceRow.cloneNode(true);
+        row.style.cssText='break-inside:avoid;page-break-inside:avoid';
+        row.querySelectorAll('td').forEach((td,i)=>{
+          td.style.cssText+=';box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;word-break:normal;padding:5px 3px;border:1px solid #dfe5ee;line-height:1.2;vertical-align:top;text-align:'+(i<2?'left':'right');
+        });
+        tbody.appendChild(row);
+      });
+      table.appendChild(tbody);
+      page.appendChild(table);
+      pdfRoot.appendChild(page);
+    }
+    document.body.appendChild(pdfRoot);
+    try{
+      await window.html2pdf().set({
+        margin:[7,7,7,7],
+        filename:pdfFileName(),
+        image:{type:'jpeg',quality:.96},
+        html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},
+        jsPDF:{unit:'mm',format:'a4',orientation:'landscape',compress:true},
+        pagebreak:{mode:['css','legacy'],before:'.pdf-page',avoid:['tr','.card']}
+      }).from(pdfRoot).save();
+    }finally{pdfRoot.remove();}
   }catch(e){alert('PDF download failed: '+e.message);}
   finally{btn.disabled=false;btn.textContent=old;}
 });
