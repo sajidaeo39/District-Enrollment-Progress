@@ -453,70 +453,71 @@ $('reset').addEventListener('click',()=>{
 $('pdf').addEventListener('click',async()=>{
   const btn=$('pdf'),old=btn.textContent;btn.disabled=true;btn.textContent='Preparing PDF…';
   try{
-    if(!window.html2pdf){
-      await new Promise((resolve,reject)=>{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';sc.onload=resolve;sc.onerror=()=>reject(Error('PDF library could not load. Please check your internet connection and retry.'));document.head.appendChild(sc);});
+    async function loadScript(src,test){
+      if(test())return;
+      await new Promise((resolve,reject)=>{
+        const existing=[...document.scripts].find(s=>s.src===src);
+        if(existing){existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',()=>reject(Error('PDF component failed to load. Retry with internet access.')),{once:true});return;}
+        const sc=document.createElement('script');sc.src=src;sc.onload=resolve;sc.onerror=()=>reject(Error('PDF component failed to load. Retry with internet access.'));document.head.appendChild(sc);
+      });
+      if(!test())throw Error('PDF component loaded but is unavailable.');
     }
-    // One continuous report: html2pdf/jsPDF paginate naturally, rather than splitting
-    // the report into fixed 12-row sections that can create blank pages.
-    const sourceTable=document.querySelector('.tablebox table');
-    const pdfRoot=document.createElement('div');
-    pdfRoot.style.cssText='display:block;box-sizing:border-box;width:1060px;max-width:1060px;background:#fff;color:#172033;padding:8px;font-family:Arial,sans-serif';
-    const title=document.createElement('h2');
-    title.textContent='SED Punjab 2026 Enrollment Dashboard';
-    title.style.cssText='font:bold 18px Arial;text-align:center;color:#17345f;margin:0 0 5px;padding:0';
-    const subtitle=document.createElement('p');
-    const stamp=esc(new Date().toLocaleString('en-GB',{timeZone:'Asia/Karachi',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true}));
-    subtitle.textContent=pdfFilterTitle()+' · '+stamp+' PK';
-    subtitle.style.cssText='font:10px Arial;text-align:center;margin:0 0 7px;color:#334155;overflow-wrap:anywhere';
-    pdfRoot.append(title,subtitle);
-    const summary=document.querySelector('.cards').cloneNode(true);
-    summary.style.cssText='display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;gap:5px;margin:0 0 8px';
-    summary.querySelectorAll('.card').forEach(e=>{e.style.cssText='box-sizing:border-box;min-width:0;border:1px solid #dfe5ee;padding:5px;text-align:center;break-inside:avoid;page-break-inside:avoid;overflow-wrap:anywhere;background:#fff'});
-    summary.querySelectorAll('.card .label').forEach(e=>{e.style.cssText='font:8px Arial;line-height:1.15;min-height:0;color:#52657a'});
-    summary.querySelectorAll('.card .value').forEach(e=>{e.style.cssText='font:bold 12px Arial;min-height:0;overflow-wrap:anywhere;margin-top:3px;color:#17345f'});
-    pdfRoot.appendChild(summary);
-    const table=sourceTable.cloneNode(true);
-    table.style.cssText='display:table;table-layout:fixed;width:100%;max-width:100%;min-width:0;border-collapse:collapse;font:9px Arial;overflow-wrap:anywhere;word-break:normal';
-    const widths=['4%','23%','10%','9%','14%','14%','13%','13%'];
-    const colgroup=document.createElement('colgroup');
-    widths.forEach(w=>{const col=document.createElement('col');col.style.width=w;colgroup.appendChild(col);});
-    table.insertBefore(colgroup,table.firstChild);
-    table.querySelectorAll('th,td').forEach(cell=>{
-      cell.style.cssText+=';box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;word-break:normal;padding:5px 4px;border:1px solid #dfe5ee;line-height:1.25;vertical-align:top;text-align:right';
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',()=>!!window.jspdf?.jsPDF);
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js',()=>typeof window.jspdf?.jsPDF?.API?.autoTable==='function');
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});
+    const pageW=pdf.internal.pageSize.getWidth(),pageH=pdf.internal.pageSize.getHeight(),margin=7;
+    const now=new Date().toLocaleString('en-GB',{timeZone:'Asia/Karachi',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true});
+    const reportTitle='SED Punjab 2026 Enrollment Dashboard';
+    const subtitle=pdfFilterTitle()+' · '+now+' PK';
+    pdf.setFillColor(23,52,95);pdf.rect(0,0,pageW,19,'F');
+    pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');pdf.setFontSize(14);pdf.text(reportTitle,pageW/2,8.5,{align:'center'});
+    pdf.setFont('helvetica','normal');pdf.setFontSize(8);pdf.text(subtitle,pageW/2,14.5,{align:'center',maxWidth:pageW-2*margin});
+    // Compact summary on page one only; all eight current dashboard KPIs are retained.
+    const cards=[...document.querySelectorAll('.cards .card')].map(card=>({
+      label:card.querySelector('.label')?.innerText?.trim()||'',
+      value:card.querySelector('.value')?.innerText?.trim()||''
+    }));
+    const gap=2,cardW=(pageW-2*margin-gap*7)/8,cardY=22,cardH=13;
+    cards.forEach((card,i)=>{
+      const x=margin+i*(cardW+gap);
+      pdf.setDrawColor(217,227,239);pdf.setFillColor(248,251,255);pdf.roundedRect(x,cardY,cardW,cardH,1,1,'FD');
+      pdf.setTextColor(82,101,122);pdf.setFont('helvetica','normal');pdf.setFontSize(5.5);
+      const labelLines=pdf.splitTextToSize(card.label,cardW-2);
+      pdf.text(labelLines.slice(0,2),x+cardW/2,cardY+3.5,{align:'center'});
+      pdf.setTextColor(23,52,95);pdf.setFont('helvetica','bold');pdf.setFontSize(8);
+      pdf.text(card.value||'—',x+cardW/2,cardY+10.5,{align:'center',maxWidth:cardW-2});
     });
-    table.querySelectorAll('th:first-child,td:first-child,th:nth-child(2),td:nth-child(2)').forEach(cell=>cell.style.textAlign='left');
-    table.querySelectorAll('th').forEach(th=>{th.style.position='static';th.style.background='#edf4fd';th.style.color='#17345f';th.style.fontSize='8px';th.style.fontWeight='700';});
-    table.querySelectorAll('tbody tr').forEach(row=>{row.style.breakInside='avoid';row.style.pageBreakInside='avoid';});
-    // Explicitly repeat the table header on every generated PDF page.
-    const header=table.querySelector('thead');
-    if(header) header.style.display='table-header-group';
-    const footer=document.createElement('div');
-    footer.textContent='For information and monitoring purposes only · Please verify data through the official SIS portal.';
-    footer.style.cssText='font:8px Arial;color:#667085;text-align:center;margin-top:6px';
-    pdfRoot.append(table,footer);
-    document.body.appendChild(pdfRoot);
-    try{
-      await window.html2pdf().set({
-        margin:[7,7,9,7],
-        filename:pdfFileName(),
-        image:{type:'jpeg',quality:.96},
-        html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false,scrollX:0,scrollY:0},
-        jsPDF:{unit:'mm',format:'a4',orientation:'landscape',compress:true},
-        pagebreak:{mode:['css'],avoid:['tr','.card','thead']}
-      }).from(pdfRoot).toPdf().get('pdf').then(pdf=>{
-        const pages=pdf.internal.getNumberOfPages();
-        for(let p=1;p<=pages;p++){
-          pdf.setPage(p);
-          pdf.setFont('helvetica','normal');
-          pdf.setFontSize(8);
-          pdf.setTextColor(102,112,133);
-          pdf.text('Page '+p+' of '+pages,297-7,210-4,{align:'right'});
+    const source=document.querySelector('.tablebox table');
+    if(!source)throw Error('Report table was not found.');
+    const head=[...source.querySelectorAll('thead tr')].map(tr=>[...tr.children].map(th=>th.innerText.trim()));
+    const body=[...source.querySelectorAll('tbody tr')].filter(tr=>tr.children.length===8 && !tr.querySelector('td[colspan]')).map(tr=>[...tr.children].map((td,i)=>({content:td.innerText.trim(),styles:i===6?{textColor:td.classList.contains('good')?[22,128,60]:td.classList.contains('bad')?[198,40,40]:[23,32,51]}:{}})));
+    if(!head.length)throw Error('Column headings were not found.');
+    if(!body.length)throw Error('There are no report rows to export.');
+    pdf.autoTable({
+      head,body,startY:38,margin:{top:12,right:margin,bottom:12,left:margin},
+      theme:'grid',tableWidth:'auto',
+      styles:{font:'helvetica',fontSize:7,cellPadding:2,overflow:'linebreak',valign:'middle',lineColor:[223,229,238],lineWidth:.15,textColor:[23,32,51]},
+      headStyles:{fillColor:[237,244,253],textColor:[23,52,95],fontStyle:'bold',fontSize:7},
+      alternateRowStyles:{fillColor:[250,252,255]},
+      columnStyles:{0:{cellWidth:9,halign:'center'},1:{cellWidth:63,halign:'left'},2:{cellWidth:25,halign:'right'},3:{cellWidth:22,halign:'right'},4:{cellWidth:34,halign:'right'},5:{cellWidth:34,halign:'right'},6:{cellWidth:31,halign:'right'},7:{cellWidth:29,halign:'right'}},
+      showHead:'everyPage',rowPageBreak:'avoid',
+      didDrawPage:()=>{
+        const p=pdf.internal.getCurrentPageInfo().pageNumber;
+        if(p>1){
+          pdf.setFillColor(23,52,95);pdf.rect(0,0,pageW,9,'F');
+          pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');pdf.setFontSize(8);pdf.text(reportTitle,pageW/2,6,{align:'center'});
         }
-      }).save();
-    }finally{pdfRoot.remove();}
-  }catch(e){alert('PDF download failed: '+e.message);}
+        pdf.setFont('helvetica','normal');pdf.setFontSize(7);pdf.setTextColor(102,112,133);
+        pdf.text('For information and monitoring purposes only · Verify through official SIS portal.',margin,pageH-4);
+        pdf.text('Page '+p,pageW-margin,pageH-4,{align:'right'});
+      }
+    });
+    pdf.save(pdfFileName());
+  }catch(e){alert('PDF download failed: '+(e?.message||String(e)));}
   finally{btn.disabled=false;btn.textContent=old;}
 });
+
 function pdfFilterTitle(){
  const parts=['Enrollment', $('level').selectedOptions[0]?.text||'All Levels'];
  for(const id of ['wing','district','tehsil','markaz','school']){
