@@ -293,6 +293,17 @@ def main():
         if dval is None: raise RuntimeError("Missing verified SIS district total: "+str(dn))
         for k in district_total: district_total[k]+=dval[k]
     print("SUM OF DISTRICT SIS TOTALS:",district_total["current"],flush=True)
+    # Explicitly log school-level vs official district-level totals for reconciliation.
+    school_totals={}
+    for row in done:
+        name=str(row.get("district","")).strip().upper()
+        bucket=school_totals.setdefault(name,{"current":0,"male":0,"female":0,"schools":0})
+        for field in ("current","male","female"): bucket[field]+=number(row.get(field))
+        bucket["schools"]+=1
+    for did,dn in ds:
+        name=dn.strip().upper(); official_row=official.get(("District",did,"0","0")); school_row=school_totals.get(name,{})
+        if official_row is not None:
+            print("DISTRICT RECONCILIATION:",name,"official_SIS=",official_row.get("current"),"school_sum=",school_row.get("current"),"difference=",number(official_row.get("current"))-number(school_row.get("current")),"schools=",school_row.get("schools",0),flush=True)
     punjab_total=live_punjab_aggregate()
     print("PUNJAB VS DISTRICT-SUM DIFFERENCE:",punjab_total["current"]-district_total["current"],flush=True)
     # Punjab KPI uses the live province-level SIS total, refreshed on every run.
