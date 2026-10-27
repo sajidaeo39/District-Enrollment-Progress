@@ -18,7 +18,7 @@ local=__import__("threading").local()
 def sess():
     if not hasattr(local,"s"):
         local.s=requests.Session()
-        local.s.mount("https://",HTTPAdapter(max_retries=Retry(total=2,backoff_factor=.4,status_forcelist=[429,500,502,503,504])))
+        local.s.mount("https://",HTTPAdapter(max_retries=Retry(total=6,backoff_factor=1.2,status_forcelist=[429,500,502,503,504],respect_retry_after_header=True)))
         local.s.headers.update({"User-Agent":"Mozilla/5.0","X-Requested-With":"XMLHttpRequest","Accept":"application/json, text/javascript, */*; q=0.01","Referer":BASE+"/dashboard/index"})
     return local.s
 
